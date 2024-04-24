@@ -1,0 +1,24 @@
+version: '3'
+services:
+  ecommerce-app:
+    build: .
+    container_name: ${ECOMMERCE_SERVICE_NAME}
+    env_file:
+      - .env
+    ports:
+      - ${ECOMMERCE_SERVICE_PORT}:3000
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: ecommerce
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - ./db-data:/var/lib/mysql
+
+volumes:
+  db-data:
