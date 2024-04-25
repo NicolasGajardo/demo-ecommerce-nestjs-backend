@@ -26,14 +26,9 @@ import { LoadUserMiddleware } from './common/middlewares/load-user.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply()
-      .exclude({ path: 'health', method: RequestMethod.GET })
-      .forRoutes()
-      .apply(LoadUserMiddleware)
-      .forRoutes(
-        { path: 'products', method: RequestMethod.POST },
-        // { path: 'products', method: RequestMethod.POST },
-      );
+    consumer.apply(LoadUserMiddleware).forRoutes(
+      { path: 'products', method: RequestMethod.POST },
+      // { path: 'products', method: RequestMethod.POST },
+    );
   }
 }

@@ -16,20 +16,31 @@ export class ProductsService {
   async listProducts(
     req: ListProductsQueryParams,
   ): Promise<{ data: Product[]; count: number }> {
-    const take = req.limit || 10;
-    const skip = req.page * 10 || 0;
+    const { category, limit, page, sortBy } = req;
 
-    const [result, total] = await this.productsRepository.findAndCount({
-      where: { name: Like(`%${req.category}%`) },
-      order: { name: req.sortBy },
-      take: take,
-      skip: skip,
-    });
+    if (!limit) {
+      const [result, total] = await this.productsRepository.findAndCount();
 
-    return {
-      data: result,
-      count: total,
-    };
+      return {
+        data: result,
+        count: total,
+      };
+    } else {
+      const take = limit || 10;
+      const skip = (page || 0) * 10;
+
+      const [result, total] = await this.productsRepository.findAndCount({
+        where: { name: Like(`%${category}%`) } as any,
+        order: { createdAt: sortBy || 'DESC' } as any,
+        take: take,
+        skip: skip,
+      });
+
+      return {
+        data: result,
+        count: total,
+      };
+    }
   }
 
   async getProduct(idProduct: string): Promise<Product> {

@@ -57,7 +57,7 @@ export class AuthService {
     const isMatched = persistedUser.comparePasswords(oldPassword);
 
     if (!isMatched) {
-      throw new BadRequestException('las contraseñas no coinciden');
+      throw new BadRequestException('Passwords do not match');
     }
 
     persistedUser.email = email;
