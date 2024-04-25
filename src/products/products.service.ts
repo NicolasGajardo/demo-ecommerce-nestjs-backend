@@ -20,7 +20,7 @@ export class ProductsService {
     const skip = page * 10 || 0;
 
     const [result, total] = await this.productsRepository.findAndCount({
-      where: { name: Like('%' + category + '%') },
+      where: { name: Like(`%${category}%`) },
       order: { name: sortBy },
       take: take,
       skip: skip,
@@ -30,9 +30,5 @@ export class ProductsService {
       data: result,
       count: total,
     };
-  }
-
-  checkout() {
-    //noop
   }
 }

@@ -3,8 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './models/user';
 import { Product } from './models/product';
 import { ConfigService } from '@nestjs/config';
+import { TransactionProduct } from './models/transaction_product';
+import { Transaction } from './models/transaction';
 
-const ORM_FEATURES = TypeOrmModule.forFeature([User, Product]);
+const ORM_FEATURES = TypeOrmModule.forFeature([
+  User,
+  Product,
+  TransactionProduct,
+  Transaction,
+]);
 
 @Module({
   imports: [

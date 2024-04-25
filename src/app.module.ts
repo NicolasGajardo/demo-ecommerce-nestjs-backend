@@ -9,6 +9,7 @@ import { DatabaseModule } from './common/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
+import { CheckoutModule } from './checkout/checkout.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HealthModule } from './health/health.module';
     DatabaseModule,
     ProductsModule,
     HealthModule,
+    CheckoutModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -10,6 +10,12 @@ export class AuthService {
     private usersRepository: Repository<User>,
   ) {}
 
+  async login(email: string, password: string): Promise<boolean> {
+    const user = await this.usersRepository.findOneBy({ email: email });
+
+    return await user.comparePasswords(password);
+  }
+
   async register(email: string, password: string): Promise<void> {
     const persistedUser = await this.usersRepository.findOneBy({ email });
 
@@ -24,9 +30,22 @@ export class AuthService {
     await this.usersRepository.insert(newUser);
   }
 
-  async login(email: string, password: string): Promise<boolean> {
-    const user = await this.usersRepository.findOneBy({ email: email });
+  async updatePassword(
+    email: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const persistedUser = await this.usersRepository.findOneBy({ email });
 
-    return await user.comparePasswords(password);
+    const isMatched = persistedUser.comparePasswords(oldPassword);
+
+    if (!isMatched) {
+      throw new Error('las contraseñas no coinciden'); // TODO: mejorar a otro tipo de error
+    }
+
+    persistedUser.email = email;
+    persistedUser.password = newPassword;
+
+    await this.usersRepository.update(persistedUser.email, persistedUser);
   }
 }

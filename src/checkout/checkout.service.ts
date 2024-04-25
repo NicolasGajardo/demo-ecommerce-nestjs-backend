@@ -1,0 +1,8 @@
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class CheckoutService {
+  checkout() {
+    //noop
+  }
+}

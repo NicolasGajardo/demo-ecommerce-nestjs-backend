@@ -1,7 +1,6 @@
-import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { ListProductsRequest } from 'src/dto/list-products.request';
+import { ListProductsRequest } from './dto/list-products.request';
 
 @Controller('products')
 export class ProductsController {
@@ -15,11 +14,5 @@ export class ProductsController {
       listProductsDto.page,
       listProductsDto.sortBy,
     );
-  }
-
-  @UseGuards(AuthGuard)
-  @Post()
-  checkout() {
-    this.productsService.checkout();
   }
 }

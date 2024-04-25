@@ -4,7 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
 } from 'typeorm';
+import { TransactionProduct } from './transaction_product';
+import { User } from './user';
 
 @Entity()
 export class Product {
@@ -15,7 +19,7 @@ export class Product {
   name: string;
 
   @Column()
-  quantity: string;
+  stock: number;
 
   @Column()
   price: number;
@@ -28,4 +32,10 @@ export class Product {
 
   @UpdateDateColumn()
   modifiedAt: Date;
+
+  @OneToMany(() => TransactionProduct, (trx) => trx.products)
+  transactions: TransactionProduct[];
+
+  @ManyToOne(() => User, (user) => user.products)
+  sellerUser: User;
 }
