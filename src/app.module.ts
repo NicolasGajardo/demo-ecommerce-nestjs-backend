@@ -9,7 +9,7 @@ import { DatabaseModule } from './common/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
-// import { CheckoutModule } from './checkout/checkout.module';
+import { CheckoutModule } from './checkout/checkout.module';
 import { LoadUserMiddleware } from './common/middlewares/load-user.middleware';
 
 @Module({
@@ -21,7 +21,7 @@ import { LoadUserMiddleware } from './common/middlewares/load-user.middleware';
     DatabaseModule,
     ProductsModule,
     HealthModule,
-    // CheckoutModule,
+    CheckoutModule,
   ],
 })
 export class AppModule implements NestModule {
