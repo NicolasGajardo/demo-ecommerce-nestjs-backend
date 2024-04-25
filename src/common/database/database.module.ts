@@ -6,12 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { TransactionProduct } from './models/transaction_product';
 import { Transaction } from './models/transaction';
 
-const ORM_FEATURES = TypeOrmModule.forFeature([
-  User,
-  Product,
-  TransactionProduct,
-  Transaction,
-]);
+const ENTITIES = [User, Product, TransactionProduct, Transaction];
+const ORM_FEATURES = TypeOrmModule.forFeature(ENTITIES);
 
 @Module({
   imports: [
@@ -25,7 +21,7 @@ const ORM_FEATURES = TypeOrmModule.forFeature([
           username: config.get<string>('MYSQL_USERNAME'),
           password: config.get<string>('MYSQL_PASSWORD'),
           database: config.get<string>('MYSQL_DATABASE'),
-          entities: [User, Product],
+          entities: ENTITIES,
           // TODO cambiar
           synchronize: true,
         };
