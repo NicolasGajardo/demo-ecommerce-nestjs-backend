@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/common/database/models/product';
 import { Like, Repository } from 'typeorm';
+import { ListProductsQueryParams } from './dto/list-products.request';
+import { ProductBody } from './dto/product.body';
 
 @Injectable()
 export class ProductsService {
@@ -11,17 +13,14 @@ export class ProductsService {
   ) {}
 
   async listProducts(
-    category: string = '',
-    limit: number,
-    page: number,
-    sortBy: 'ASC' | 'DESC' = 'DESC',
-  ) {
-    const take = limit || 10;
-    const skip = page * 10 || 0;
+    req: ListProductsQueryParams,
+  ): Promise<{ data: Product[]; count: number }> {
+    const take = req.limit || 10;
+    const skip = req.page * 10 || 0;
 
     const [result, total] = await this.productsRepository.findAndCount({
-      where: { name: Like(`%${category}%`) },
-      order: { name: sortBy },
+      where: { name: Like(`%${req.category}%`) },
+      order: { name: req.sortBy },
       take: take,
       skip: skip,
     });
@@ -30,5 +29,32 @@ export class ProductsService {
       data: result,
       count: total,
     };
+  }
+
+  async getProduct(idProduct: string): Promise<Product> {
+    const product = await this.productsRepository.findOneBy({
+      uuid: idProduct,
+    });
+
+    return product;
+  }
+
+  async addProduct(productBody: ProductBody) {
+    const newProduct = new Product();
+    newProduct.uuid = productBody.uuid;
+    newProduct.name = productBody.name;
+    newProduct.stock = productBody.stock;
+    newProduct.price = productBody.price;
+    newProduct.description = productBody.description;
+    // newProduct.sellerUser()
+
+    await this.productsRepository.insert(newProduct);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async updateProduct(productBody: ProductBody) {
+    throw new NotImplementedException(
+      'This method is currently not implemented.',
+    );
   }
 }
