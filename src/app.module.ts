@@ -9,7 +9,8 @@ import { DatabaseModule } from './common/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
-import { CheckoutModule } from './checkout/checkout.module';
+// import { CheckoutModule } from './checkout/checkout.module';
+import { LoadUserMiddleware } from './common/middlewares/load-user.middleware';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { CheckoutModule } from './checkout/checkout.module';
     DatabaseModule,
     ProductsModule,
     HealthModule,
-    CheckoutModule,
+    // CheckoutModule,
   ],
 })
 export class AppModule implements NestModule {
@@ -28,6 +29,11 @@ export class AppModule implements NestModule {
     consumer
       .apply()
       .exclude({ path: 'health', method: RequestMethod.GET })
-      .forRoutes();
+      .forRoutes()
+      .apply(LoadUserMiddleware)
+      .forRoutes(
+        { path: 'products', method: RequestMethod.POST },
+        // { path: 'products', method: RequestMethod.POST },
+      );
   }
 }

@@ -2,45 +2,41 @@ import {
   Controller,
   Post,
   Body,
-  UnauthorizedException,
   HttpCode,
   HttpStatus,
+  Put,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/register.dto';
-
+import { AuthBody } from './dto/auth.body';
+import { AuthGuard } from 'src/common/middlewares/auth.guard';
+import { UpdatePasswordAuthBody } from './dto/update-password-auth.body';
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    // TODO: manejar las excepciones, mapearlas a errores HTTP
-    // En este caso sería HTTP404
-    await this.authService.register(registerDto.email, registerDto.password);
+  async register(@Body() body: AuthBody) {
+    await this.authService.register(body.email, body.password);
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    const isAuth = await this.authService.login(
-      loginDto.email,
-      loginDto.password,
+  async login(@Body() body: AuthBody) {
+    return await this.authService.login(body);
+  }
+
+  @Put('update-password')
+  @UseGuards(AuthGuard)
+  async updatePassword(
+    @Body() body: UpdatePasswordAuthBody,
+    @Request() req: any,
+  ) {
+    await this.authService.updatePassword(
+      req.user.email,
+      body.oldPassword,
+      body.newPassword,
     );
-
-    if (!isAuth) {
-      throw new UnauthorizedException();
-    }
-
-    const payload = { email: loginDto.email };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
   }
 }
