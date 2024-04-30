@@ -1,42 +1,78 @@
 import {
   Controller,
+  Delete,
   Get,
   Param,
   Post,
   Put,
   Query,
-  Request,
+  Req,
+  Res,
+  Scope,
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ListProductsQueryParams } from './dto/list-products.request';
+import { ListProductsQueryParams } from './dto/list-products.query-params';
 import { ProductBody } from './dto/product.body';
 import { ExpressRequest } from 'src/common/utils/interfaces';
-import { FetchUserAuthGuard } from 'src/common/middlewares/fetch-user-auth.guard';
+import { AuthGuard } from 'src/common/middlewares/auth.guard';
+import { HttpStatusCode } from 'axios';
+import { Observable, map } from 'rxjs';
+import { Response } from 'express';
 
-@Controller('products')
+@Controller({ path: 'products', scope: Scope.REQUEST })
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
   getProducts(@Query() listProductsDto: ListProductsQueryParams) {
-    return this.productsService.listProducts(listProductsDto);
+    return this.productsService.findAll(listProductsDto);
   }
 
-  @Get()
-  getProduct(@Param('id') productId: string) {
-    return this.productsService.getProduct(productId);
+  @Get(':id')
+  getProduct(@Param('id') id: string) {
+    return this.productsService.findById(id);
   }
 
   @Post()
-  @UseGuards(FetchUserAuthGuard)
-  newProduct(@Request() req: ExpressRequest<ProductBody>) {
-    return this.productsService.addProduct(req.body, req.user);
+  @UseGuards(AuthGuard)
+  newProduct(
+    @Req() req: ExpressRequest<ProductBody>,
+    @Res() res: Response,
+  ): Observable<Response> {
+    return this.productsService.save(req.body, req.user).pipe(
+      map((product) => {
+        return res
+          .location('/products/' + product.uuid)
+          .status(HttpStatusCode.Created)
+          .send();
+      }),
+    );
   }
 
-  @Put()
-  @UseGuards(FetchUserAuthGuard)
-  updateProduct(@Request() req: ExpressRequest<ProductBody>) {
-    return this.productsService.updateProduct(req.body, req.user);
+  @Put(':id')
+  @UseGuards(AuthGuard)
+  updateProduct(@Req() req: ExpressRequest<ProductBody>, @Res() res: Response) {
+    return this.productsService.update(req.body, req.user).pipe(
+      map(() => {
+        return res.status(HttpStatusCode.NoContent).send();
+      }),
+    );
   }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  deleteProduct(
+    @Param('id') id: string,
+    @Req() req: ExpressRequest<void>,
+    @Res() res: Response,
+  ) {
+    return this.productsService.delete(id, req.user).pipe(
+      map(() => {
+        return res.status(HttpStatusCode.NoContent).send();
+      }),
+    );
+  }
+
+  // TODO: Agregar sección de comentarios
 }

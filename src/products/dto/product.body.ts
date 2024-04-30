@@ -1,5 +1,5 @@
 export class ProductBody {
-  uuid: string;
+  uuid?: string;
   name: string;
   stock: number;
   price: number;
