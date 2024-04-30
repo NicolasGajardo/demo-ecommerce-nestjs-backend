@@ -5,11 +5,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../database/models/user';
+import { Repository } from 'typeorm';
 import { extractTokenFromHeader } from '../utils/functions';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+export class FetchUserAuthGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -22,6 +29,8 @@ export class AuthGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       });
       request['user_email'] = email;
+      const user = await this.usersRepository.findOneBy({ email: email });
+      request['user'] = user;
     } catch {
       throw new UnauthorizedException();
     }

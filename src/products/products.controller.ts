@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Get,
   Param,
@@ -12,7 +11,8 @@ import {
 import { ProductsService } from './products.service';
 import { ListProductsQueryParams } from './dto/list-products.request';
 import { ProductBody } from './dto/product.body';
-import { AuthGuard } from 'src/common/middlewares/auth.guard';
+import { ExpressRequest } from 'src/common/utils/interfaces';
+import { FetchUserAuthGuard } from 'src/common/middlewares/fetch-user-auth.guard';
 
 @Controller('products')
 export class ProductsController {
@@ -29,14 +29,14 @@ export class ProductsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
-  newProduct(@Body() body: ProductBody, @Request() req: any) {
-    return this.productsService.addProduct(body, req.user);
+  @UseGuards(FetchUserAuthGuard)
+  newProduct(@Request() req: ExpressRequest<ProductBody>) {
+    return this.productsService.addProduct(req.body, req.user);
   }
 
   @Put()
-  @UseGuards(AuthGuard)
-  updateProduct(@Body() body: ProductBody) {
-    return this.productsService.updateProduct(body);
+  @UseGuards(FetchUserAuthGuard)
+  updateProduct(@Request() req: ExpressRequest<ProductBody>) {
+    return this.productsService.updateProduct(req.body, req.user);
   }
 }
