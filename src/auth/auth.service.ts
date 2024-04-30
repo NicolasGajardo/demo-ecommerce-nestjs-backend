@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -37,7 +37,7 @@ export class AuthService {
     const persistedUser = await this.usersRepository.findOneBy({ email });
 
     if (persistedUser) {
-      throw new BadRequestException('email is already in use');
+      throw new ConflictException('email is already in use');
     }
 
     const newUser: User = new User();
@@ -57,7 +57,7 @@ export class AuthService {
     const isMatched = persistedUser.comparePasswords(oldPassword);
 
     if (!isMatched) {
-      throw new BadRequestException('Passwords do not match');
+      throw new UnauthorizedException();
     }
 
     persistedUser.email = email;
