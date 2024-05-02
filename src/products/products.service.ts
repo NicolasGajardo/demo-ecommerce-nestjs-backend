@@ -2,8 +2,8 @@ import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductModel } from 'src/common/database/models/product.model';
 import { Like, Repository } from 'typeorm';
-import { GetProductsQueryParams } from './dto/get-products.query-params';
-import { PostProductBody } from './dto/post-product.body';
+import { ProductsQueryParams } from './dto/products.query-params';
+import { ProductBody } from './dto/product.body';
 import {
   EMPTY,
   Observable,
@@ -20,12 +20,12 @@ import { ExpressRequest } from 'src/common/utils/interfaces';
 export class ProductsService {
   constructor(
     @InjectRepository(ProductModel)
-    private productsRepository: Repository<ProductModel>,
-    @Inject(REQUEST) private req: ExpressRequest,
+    private readonly productsRepository: Repository<ProductModel>,
+    @Inject(REQUEST) private readonly req: ExpressRequest,
   ) {}
 
   findAll(
-    req: GetProductsQueryParams,
+    req: ProductsQueryParams,
   ): Observable<{ data: ProductModel[]; count: number }> {
     const { category, limit, page, sortBy } = req;
     return from(
@@ -56,7 +56,7 @@ export class ProductsService {
     return from(product);
   }
 
-  save(productBody: PostProductBody) {
+  save(productBody: ProductBody) {
     const { name, stock, price, description } = productBody;
     const newProduct = new ProductModel();
     newProduct.name = name;
@@ -68,9 +68,7 @@ export class ProductsService {
     return from(this.productsRepository.save(newProduct));
   }
 
-  update(productBody: PostProductBody) {
-    const { uuid, name, stock, price, description } = productBody;
-
+  update(uuid: string, productBody: ProductBody) {
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,
@@ -82,6 +80,8 @@ export class ProductsService {
         () => new NotFoundException(`product: ${uuid} was not found`),
       ),
       switchMap(() => {
+        const { name, stock, price, description } = productBody;
+
         const productPayload = new ProductModel();
         productPayload.name = name;
         productPayload.stock = stock;

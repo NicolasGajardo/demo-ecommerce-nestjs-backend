@@ -12,8 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { GetProductsQueryParams } from './dto/get-products.query-params';
-import { PostProductBody } from './dto/post-product.body';
+import { ProductsQueryParams } from './dto/products.query-params';
+import { ProductBody } from './dto/product.body';
 import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
 import { HttpStatusCode } from 'axios';
 import { Observable, map } from 'rxjs';
@@ -26,7 +26,7 @@ export class ProductsController {
 
   @Get()
   getProducts(
-    @Query() productsQueryParamsDto: GetProductsQueryParams,
+    @Query() productsQueryParamsDto: ProductsQueryParams,
   ): Observable<{ data: ProductModel[]; count: number }> {
     return this.productsService.findAll(productsQueryParamsDto);
   }
@@ -39,7 +39,7 @@ export class ProductsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   newProduct(
-    @Body() body: PostProductBody,
+    @Body() body: ProductBody,
     @Res() res: Response,
   ): Observable<Response> {
     return this.productsService.save(body).pipe(
@@ -55,10 +55,11 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   updateProduct(
-    @Body() body: PostProductBody,
+    @Param('id') id: string,
+    @Body() body: ProductBody,
     @Res() res: Response,
   ): Observable<Response> {
-    return this.productsService.update(body).pipe(
+    return this.productsService.update(id, body).pipe(
       map(() => {
         return res.status(HttpStatusCode.NoContent).send();
       }),

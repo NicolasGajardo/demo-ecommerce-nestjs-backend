@@ -1,4 +1,4 @@
-export class GetProductsQueryParams {
+export class ProductsQueryParams {
   public category?: string;
   public sortBy?: 'DESC' | 'ASC';
   public page?: number;
