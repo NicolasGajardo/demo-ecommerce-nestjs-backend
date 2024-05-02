@@ -6,37 +6,30 @@ import {
   HttpStatus,
   Put,
   UseGuards,
-  Request,
+  Scope,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthBody } from './dto/auth.body';
 import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
 import { UpdatePasswordAuthBody } from './dto/update-password-auth.body';
-@Controller('auth')
+@Controller({ path: 'auth', scope: Scope.REQUEST })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('register')
-  async register(@Body() body: AuthBody) {
-    await this.authService.register(body.email, body.password);
+  register(@Body() body: AuthBody) {
+    return this.authService.register(body);
   }
 
   @Post('login')
-  async login(@Body() body: AuthBody) {
-    return await this.authService.login(body);
+  login(@Body() body: AuthBody) {
+    return this.authService.login(body);
   }
 
   @Put('update-password')
   @UseGuards(JwtAuthGuard)
-  async updatePassword(
-    @Body() body: UpdatePasswordAuthBody,
-    @Request() req: any,
-  ) {
-    await this.authService.updatePassword(
-      req.user.email,
-      body.oldPassword,
-      body.newPassword,
-    );
+  updatePassword(@Body() body: UpdatePasswordAuthBody) {
+    return this.authService.updatePassword(body);
   }
 }

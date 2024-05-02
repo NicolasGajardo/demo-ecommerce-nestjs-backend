@@ -1,6 +1,8 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
+  Scope,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,13 +10,17 @@ import { UserModel } from 'src/common/database/models/user.model';
 import { Repository } from 'typeorm';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';
+import { REQUEST } from '@nestjs/core';
+import { ExpressRequest } from 'src/common/utils/interfaces';
+import { UpdatePasswordAuthBody } from './dto/update-password-auth.body';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class AuthService {
   constructor(
     @InjectRepository(UserModel)
-    private usersRepository: Repository<UserModel>,
+    private readonly usersRepository: Repository<UserModel>,
     private readonly jwtService: JwtService,
+    @Inject(REQUEST) private readonly req: ExpressRequest,
   ) {}
 
   async login(body: AuthBody): Promise<{ access_token: string }> {
@@ -33,13 +39,15 @@ export class AuthService {
     };
   }
 
-  async register(email: string, password: string): Promise<void> {
-    const persistedUser = await this.usersRepository.findOneBy({ email });
+  async register(body: AuthBody): Promise<void> {
+    const { email } = body;
+    const persistedUser = await this.usersRepository.findOneBy({});
 
     if (persistedUser) {
       throw new ConflictException('email is already in use');
     }
 
+    const { password } = body;
     const newUser: UserModel = new UserModel();
     newUser.email = email;
     newUser.password = password;
@@ -47,19 +55,18 @@ export class AuthService {
     await this.usersRepository.insert(newUser);
   }
 
-  async updatePassword(
-    email: string,
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<void> {
+  async updatePassword(body: UpdatePasswordAuthBody): Promise<void> {
+    const email = this.req.user.email;
     const persistedUser = await this.usersRepository.findOneBy({ email });
 
+    const { oldPassword } = body;
     const isMatched = persistedUser.comparePasswords(oldPassword);
 
     if (!isMatched) {
       throw new UnauthorizedException();
     }
 
+    const { newPassword } = body;
     persistedUser.email = email;
     persistedUser.password = newPassword;
 
