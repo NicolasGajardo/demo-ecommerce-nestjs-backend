@@ -11,7 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { TransactionModel } from './transaction.model';
 import { ProductModel } from './product.model';
 
-@Entity()
+@Entity('user')
 export class UserModel {
   @PrimaryColumn()
   email: string;

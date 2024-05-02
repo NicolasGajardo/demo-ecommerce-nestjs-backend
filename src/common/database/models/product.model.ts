@@ -10,7 +10,7 @@ import {
 import { TransactionProductModel } from './transaction-product.model';
 import { UserModel } from './user.model';
 
-@Entity()
+@Entity('product')
 export class ProductModel {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;

@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserModel } from 'src/common/database/models/user';
+import { UserModel } from 'src/common/database/models/user.model';
 import { Repository } from 'typeorm';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';

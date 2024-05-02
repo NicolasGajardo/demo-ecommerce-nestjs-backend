@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -6,7 +7,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   Res,
   Scope,
   UseGuards,
@@ -14,33 +14,35 @@ import {
 import { ProductsService } from './products.service';
 import { GetProductsQueryParams } from './dto/get-products.query-params';
 import { PostProductBody } from './dto/post-product.body';
-import { ExpressRequest } from 'src/common/utils/interfaces';
 import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
 import { HttpStatusCode } from 'axios';
 import { Observable, map } from 'rxjs';
 import { Response } from 'express';
+import { ProductModel } from 'src/common/database/models/product.model';
 
 @Controller({ path: 'products', scope: Scope.REQUEST })
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  getProducts(@Query() productsQueryParamsDto: GetProductsQueryParams) {
+  getProducts(
+    @Query() productsQueryParamsDto: GetProductsQueryParams,
+  ): Observable<{ data: ProductModel[]; count: number }> {
     return this.productsService.findAll(productsQueryParamsDto);
   }
 
   @Get(':id')
-  getProduct(@Param('id') id: string) {
+  getProduct(@Param('id') id: string): Observable<ProductModel> {
     return this.productsService.findById(id);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
   newProduct(
-    @Req() req: ExpressRequest<PostProductBody>,
+    @Body() body: PostProductBody,
     @Res() res: Response,
   ): Observable<Response> {
-    return this.productsService.save(req.body, req.user).pipe(
+    return this.productsService.save(body).pipe(
       map((product) => {
         return res
           .location('/products/' + product.uuid)
@@ -53,10 +55,10 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   updateProduct(
-    @Req() req: ExpressRequest<PostProductBody>,
+    @Body() body: PostProductBody,
     @Res() res: Response,
-  ) {
-    return this.productsService.update(req.body, req.user).pipe(
+  ): Observable<Response> {
+    return this.productsService.update(body).pipe(
       map(() => {
         return res.status(HttpStatusCode.NoContent).send();
       }),
@@ -67,10 +69,9 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   deleteProduct(
     @Param('id') id: string,
-    @Req() req: ExpressRequest<void>,
     @Res() res: Response,
-  ) {
-    return this.productsService.delete(id, req.user).pipe(
+  ): Observable<Response> {
+    return this.productsService.delete(id).pipe(
       map(() => {
         return res.status(HttpStatusCode.NoContent).send();
       }),

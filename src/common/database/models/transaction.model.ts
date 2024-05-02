@@ -11,7 +11,7 @@ import {
 import { UserModel } from './user.model';
 import { TransactionProductModel } from './transaction-product.model';
 
-@Entity()
+@Entity('transaction')
 export class TransactionModel {
   @PrimaryGeneratedColumn()
   id: number;

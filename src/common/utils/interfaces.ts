@@ -1,8 +1,6 @@
 import { Request } from 'express';
-import { UserModel } from '../database/models/user';
+import { UserModel } from '../database/models/user.model';
 
-export interface ExpressRequest<ReqBody = any> extends Request {
-  user: UserModel;
-  userEmail: string;
-  body: ReqBody;
+export interface ExpressRequest extends Request {
+  readonly user: UserModel;
 }

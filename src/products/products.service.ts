@@ -1,37 +1,51 @@
-import { Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductModel } from 'src/common/database/models/product.model';
 import { Like, Repository } from 'typeorm';
 import { GetProductsQueryParams } from './dto/get-products.query-params';
 import { PostProductBody } from './dto/post-product.body';
-import { UserModel } from 'src/common/database/models/user';
-import { EMPTY, Observable, from, of, switchMap, throwIfEmpty } from 'rxjs';
+import {
+  EMPTY,
+  Observable,
+  from,
+  map,
+  of,
+  switchMap,
+  throwIfEmpty,
+} from 'rxjs';
+import { REQUEST } from '@nestjs/core';
+import { ExpressRequest } from 'src/common/utils/interfaces';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
     @InjectRepository(ProductModel)
     private productsRepository: Repository<ProductModel>,
+    @Inject(REQUEST) private req: ExpressRequest,
   ) {}
 
-  async findAll(
+  findAll(
     req: GetProductsQueryParams,
-  ): Promise<{ data: ProductModel[]; count: number }> {
+  ): Observable<{ data: ProductModel[]; count: number }> {
     const { category, limit, page, sortBy } = req;
-
-    const [result, total] = limit
-      ? await this.productsRepository.findAndCount({
-          where: { name: category ? Like(`%${category}%`) : null },
-          order: { createdAt: sortBy || 'DESC' },
-          take: limit,
-          skip: (page || 0) * limit,
-        })
-      : await this.productsRepository.findAndCount();
-
-    return {
-      data: result,
-      count: total,
-    };
+    return from(
+      limit
+        ? this.productsRepository.findAndCount({
+            where: { name: category ? Like(`%${category}%`) : null },
+            order: { createdAt: sortBy || 'DESC' },
+            take: limit as number,
+            skip: (page || 0) * (limit as number),
+          })
+        : this.productsRepository.findAndCount(),
+    ).pipe(
+      map((products) => {
+        const [result, total] = products;
+        return {
+          data: result,
+          count: total,
+        };
+      }),
+    );
   }
 
   findById(id: string): Observable<ProductModel> {
@@ -42,25 +56,25 @@ export class ProductsService {
     return from(product);
   }
 
-  save(productBody: PostProductBody, seller: UserModel) {
+  save(productBody: PostProductBody) {
     const { name, stock, price, description } = productBody;
     const newProduct = new ProductModel();
     newProduct.name = name;
     newProduct.stock = stock;
     newProduct.price = price;
     newProduct.description = description;
-    newProduct.sellerUser = seller;
+    newProduct.sellerUser = this.req.user;
 
     return from(this.productsRepository.save(newProduct));
   }
 
-  update(productBody: PostProductBody, user: UserModel) {
+  update(productBody: PostProductBody) {
     const { uuid, name, stock, price, description } = productBody;
 
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,
-        sellerUser: user,
+        sellerUser: this.req.user,
       }),
     ).pipe(
       switchMap((productExists) => (productExists ? of(productExists) : EMPTY)),
@@ -79,11 +93,11 @@ export class ProductsService {
     );
   }
 
-  delete(uuid: string, user: UserModel) {
+  delete(uuid: string) {
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,
-        sellerUser: user,
+        sellerUser: this.req.user,
       }),
     ).pipe(
       switchMap((productExists) => (productExists ? of(productExists) : EMPTY)),

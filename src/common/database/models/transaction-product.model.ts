@@ -10,7 +10,7 @@ import {
 import { ProductModel } from './product.model';
 import { TransactionModel } from './transaction.model';
 
-@Entity()
+@Entity('transaction_product')
 export class TransactionProductModel {
   @PrimaryGeneratedColumn()
   id: number;
