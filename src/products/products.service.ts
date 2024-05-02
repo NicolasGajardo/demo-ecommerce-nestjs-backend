@@ -1,22 +1,22 @@
 import { Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from 'src/common/database/models/product';
+import { ProductModel } from 'src/common/database/models/product.model';
 import { Like, Repository } from 'typeorm';
 import { GetProductsQueryParams } from './dto/get-products.query-params';
 import { PostProductBody } from './dto/post-product.body';
-import { User } from 'src/common/database/models/user';
+import { UserModel } from 'src/common/database/models/user';
 import { EMPTY, Observable, from, of, switchMap, throwIfEmpty } from 'rxjs';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
-    @InjectRepository(Product)
-    private productsRepository: Repository<Product>,
+    @InjectRepository(ProductModel)
+    private productsRepository: Repository<ProductModel>,
   ) {}
 
   async findAll(
     req: GetProductsQueryParams,
-  ): Promise<{ data: Product[]; count: number }> {
+  ): Promise<{ data: ProductModel[]; count: number }> {
     const { category, limit, page, sortBy } = req;
 
     const [result, total] = limit
@@ -34,7 +34,7 @@ export class ProductsService {
     };
   }
 
-  findById(id: string): Observable<Product> {
+  findById(id: string): Observable<ProductModel> {
     const product = this.productsRepository.findOneBy({
       uuid: id,
     });
@@ -42,9 +42,9 @@ export class ProductsService {
     return from(product);
   }
 
-  save(productBody: PostProductBody, seller: User) {
+  save(productBody: PostProductBody, seller: UserModel) {
     const { name, stock, price, description } = productBody;
-    const newProduct = new Product();
+    const newProduct = new ProductModel();
     newProduct.name = name;
     newProduct.stock = stock;
     newProduct.price = price;
@@ -54,7 +54,7 @@ export class ProductsService {
     return from(this.productsRepository.save(newProduct));
   }
 
-  update(productBody: PostProductBody, user: User) {
+  update(productBody: PostProductBody, user: UserModel) {
     const { uuid, name, stock, price, description } = productBody;
 
     return from(
@@ -68,7 +68,7 @@ export class ProductsService {
         () => new NotFoundException(`product: ${uuid} was not found`),
       ),
       switchMap(() => {
-        const productPayload = new Product();
+        const productPayload = new ProductModel();
         productPayload.name = name;
         productPayload.stock = stock;
         productPayload.price = price;
@@ -79,7 +79,7 @@ export class ProductsService {
     );
   }
 
-  delete(uuid: string, user: User) {
+  delete(uuid: string, user: UserModel) {
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,

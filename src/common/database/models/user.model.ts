@@ -6,14 +6,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  BeforeUpdate,
 } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Transaction } from './transaction';
-import { Product } from './product';
+import { TransactionModel } from './transaction.model';
+import { ProductModel } from './product.model';
 
 @Entity()
-export class User {
+export class UserModel {
   @PrimaryColumn()
   email: string;
 
@@ -26,14 +25,13 @@ export class User {
   @UpdateDateColumn()
   modifiedAt: Date;
 
-  @OneToMany(() => Transaction, (transaction) => transaction.buyerUser)
-  transactions: Transaction[];
+  @OneToMany(() => TransactionModel, (transaction) => transaction.buyerUser)
+  transactions: TransactionModel[];
 
-  @OneToMany(() => Product, (product) => product.sellerUser)
-  products: Product[];
+  @OneToMany(() => ProductModel, (product) => product.sellerUser)
+  products: ProductModel[];
 
   @BeforeInsert()
-  @BeforeUpdate()
   async hashPassword(): Promise<void> {
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);

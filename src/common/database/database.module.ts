@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './models/user';
-import { Product } from './models/product';
 import { ConfigService } from '@nestjs/config';
-import { TransactionProduct } from './models/transaction_product';
-import { Transaction } from './models/transaction';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModel } from './models/user.model';
+import { ProductModel } from './models/product.model';
+import { TransactionProductModel } from './models/transaction-product.model';
+import { TransactionModel } from './models/transaction.model';
 
-const ENTITIES = [User, Product, TransactionProduct, Transaction];
+const ENTITIES = [
+  UserModel,
+  ProductModel,
+  TransactionProductModel,
+  TransactionModel,
+];
 const ORM_FEATURES = TypeOrmModule.forFeature(ENTITIES);
 
 @Module({

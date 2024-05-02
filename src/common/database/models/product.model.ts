@@ -7,11 +7,11 @@ import {
   OneToMany,
   ManyToOne,
 } from 'typeorm';
-import { TransactionProduct } from './transaction_product';
-import { User } from './user';
+import { TransactionProductModel } from './transaction-product.model';
+import { UserModel } from './user.model';
 
 @Entity()
-export class Product {
+export class ProductModel {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
@@ -33,9 +33,9 @@ export class Product {
   @UpdateDateColumn()
   modifiedAt: Date;
 
-  @OneToMany(() => TransactionProduct, (trx) => trx.products)
-  transactions: TransactionProduct[];
+  @OneToMany(() => TransactionProductModel, (trx) => trx.products)
+  transactions: TransactionProductModel[];
 
-  @ManyToOne(() => User, (user) => user.products)
-  sellerUser: User;
+  @ManyToOne(() => UserModel, (user) => user.products)
+  sellerUser: UserModel;
 }

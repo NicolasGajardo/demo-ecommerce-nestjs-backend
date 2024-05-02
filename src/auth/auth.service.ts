@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/common/database/models/user';
+import { UserModel } from 'src/common/database/models/user';
 import { Repository } from 'typeorm';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';
@@ -12,8 +12,8 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    @InjectRepository(UserModel)
+    private usersRepository: Repository<UserModel>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -40,7 +40,7 @@ export class AuthService {
       throw new ConflictException('email is already in use');
     }
 
-    const newUser: User = new User();
+    const newUser: UserModel = new UserModel();
     newUser.email = email;
     newUser.password = password;
 

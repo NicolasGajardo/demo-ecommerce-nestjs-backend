@@ -8,11 +8,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user';
-import { TransactionProduct } from './transaction_product';
+import { UserModel } from './user.model';
+import { TransactionProductModel } from './transaction-product.model';
 
 @Entity()
-export class Transaction {
+export class TransactionModel {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,13 +25,13 @@ export class Transaction {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.transactions)
+  @ManyToOne(() => UserModel, (user) => user.transactions)
   @JoinColumn()
-  buyerUser: User;
+  buyerUser: UserModel;
 
   @OneToMany(
-    () => TransactionProduct,
+    () => TransactionProductModel,
     (transactionProduct) => transactionProduct.transaction,
   )
-  transactionsProducts: TransactionProduct;
+  transactionsProducts: TransactionProductModel;
 }
