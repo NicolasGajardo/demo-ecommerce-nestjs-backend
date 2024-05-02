@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/common/database/models/product';
 import { Like, Repository } from 'typeorm';
-import { ListProductsQueryParams } from './dto/list-products.query-params';
-import { ProductBody } from './dto/product.body';
+import { GetProductsQueryParams } from './dto/get-products.query-params';
+import { PostProductBody } from './dto/post-product.body';
 import { User } from 'src/common/database/models/user';
 import { EMPTY, Observable, from, of, switchMap, throwIfEmpty } from 'rxjs';
 
@@ -15,7 +15,7 @@ export class ProductsService {
   ) {}
 
   async findAll(
-    req: ListProductsQueryParams,
+    req: GetProductsQueryParams,
   ): Promise<{ data: Product[]; count: number }> {
     const { category, limit, page, sortBy } = req;
 
@@ -42,7 +42,7 @@ export class ProductsService {
     return from(product);
   }
 
-  save(productBody: ProductBody, seller: User) {
+  save(productBody: PostProductBody, seller: User) {
     const { name, stock, price, description } = productBody;
     const newProduct = new Product();
     newProduct.name = name;
@@ -54,7 +54,7 @@ export class ProductsService {
     return from(this.productsRepository.save(newProduct));
   }
 
-  update(productBody: ProductBody, user: User) {
+  update(productBody: PostProductBody, user: User) {
     const { uuid, name, stock, price, description } = productBody;
 
     return from(
@@ -65,7 +65,7 @@ export class ProductsService {
     ).pipe(
       switchMap((productExists) => (productExists ? of(productExists) : EMPTY)),
       throwIfEmpty(
-        () => new NotFoundException(`product:${uuid} was not found`),
+        () => new NotFoundException(`product: ${uuid} was not found`),
       ),
       switchMap(() => {
         const productPayload = new Product();
@@ -88,7 +88,7 @@ export class ProductsService {
     ).pipe(
       switchMap((productExists) => (productExists ? of(productExists) : EMPTY)),
       throwIfEmpty(
-        () => new NotFoundException(`product:${uuid} was not found`),
+        () => new NotFoundException(`product: ${uuid} was not found`),
       ),
       switchMap(() => this.productsRepository.delete({ uuid: uuid })),
     );

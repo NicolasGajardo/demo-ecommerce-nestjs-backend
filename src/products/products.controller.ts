@@ -12,10 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { ListProductsQueryParams } from './dto/list-products.query-params';
-import { ProductBody } from './dto/product.body';
+import { GetProductsQueryParams } from './dto/get-products.query-params';
+import { PostProductBody } from './dto/post-product.body';
 import { ExpressRequest } from 'src/common/utils/interfaces';
-import { AuthGuard } from 'src/common/middlewares/auth.guard';
+import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
 import { HttpStatusCode } from 'axios';
 import { Observable, map } from 'rxjs';
 import { Response } from 'express';
@@ -25,8 +25,8 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  getProducts(@Query() listProductsDto: ListProductsQueryParams) {
-    return this.productsService.findAll(listProductsDto);
+  getProducts(@Query() productsQueryParamsDto: GetProductsQueryParams) {
+    return this.productsService.findAll(productsQueryParamsDto);
   }
 
   @Get(':id')
@@ -35,9 +35,9 @@ export class ProductsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   newProduct(
-    @Req() req: ExpressRequest<ProductBody>,
+    @Req() req: ExpressRequest<PostProductBody>,
     @Res() res: Response,
   ): Observable<Response> {
     return this.productsService.save(req.body, req.user).pipe(
@@ -51,8 +51,11 @@ export class ProductsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
-  updateProduct(@Req() req: ExpressRequest<ProductBody>, @Res() res: Response) {
+  @UseGuards(JwtAuthGuard)
+  updateProduct(
+    @Req() req: ExpressRequest<PostProductBody>,
+    @Res() res: Response,
+  ) {
     return this.productsService.update(req.body, req.user).pipe(
       map(() => {
         return res.status(HttpStatusCode.NoContent).send();
@@ -61,7 +64,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   deleteProduct(
     @Param('id') id: string,
     @Req() req: ExpressRequest<void>,

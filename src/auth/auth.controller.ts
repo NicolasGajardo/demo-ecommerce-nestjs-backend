@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthBody } from './dto/auth.body';
-import { AuthGuard } from 'src/common/middlewares/auth.guard';
+import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
 import { UpdatePasswordAuthBody } from './dto/update-password-auth.body';
 @Controller('auth')
 export class AuthController {
@@ -28,7 +28,7 @@ export class AuthController {
   }
 
   @Put('update-password')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   async updatePassword(
     @Body() body: UpdatePasswordAuthBody,
     @Request() req: any,

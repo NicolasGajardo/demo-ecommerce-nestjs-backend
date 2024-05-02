@@ -1,4 +1,4 @@
-export class ProductBody {
+export class PostProductBody {
   uuid?: string;
   name: string;
   stock: number;
