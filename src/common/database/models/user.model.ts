@@ -37,7 +37,7 @@ export class UserModel {
     this.password = await bcrypt.hash(this.password, salt);
   }
 
-  async comparePasswords(password: string): Promise<boolean> {
+  comparePasswords(password: string): boolean {
     return bcrypt.compareSync(password, this.password);
   }
 }

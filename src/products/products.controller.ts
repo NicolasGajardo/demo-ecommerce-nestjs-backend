@@ -14,7 +14,7 @@ import {
 import { ProductsService } from './products.service';
 import { ProductsQueryParams } from './dto/products.query-params';
 import { ProductBody } from './dto/product.body';
-import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { HttpStatusCode } from 'axios';
 import { Observable, map } from 'rxjs';
 import { Response } from 'express';

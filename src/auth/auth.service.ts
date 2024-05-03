@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Inject,
   Injectable,
   Scope,
@@ -11,8 +10,18 @@ import { Repository } from 'typeorm';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';
 import { REQUEST } from '@nestjs/core';
-import { ExpressRequest } from 'src/common/utils/interfaces';
+import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { UpdatePasswordAuthBody } from './dto/update-password-auth.body';
+import { AccessToken } from './interface/access-token.interface';
+import {
+  EMPTY,
+  Observable,
+  from,
+  map,
+  of,
+  switchMap,
+  throwIfEmpty,
+} from 'rxjs';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -20,56 +29,66 @@ export class AuthService {
     @InjectRepository(UserModel)
     private readonly usersRepository: Repository<UserModel>,
     private readonly jwtService: JwtService,
-    @Inject(REQUEST) private readonly req: ExpressRequest,
+    @Inject(REQUEST) private readonly req: AuthenticatedRequest,
   ) {}
 
-  async login(body: AuthBody): Promise<{ access_token: string }> {
-    const user = await this.usersRepository.findOneBy({ email: body.email });
-
-    const isAuth = await user.comparePasswords(body.password);
-
-    if (!isAuth) {
-      throw new UnauthorizedException();
-    }
-
-    const payload = { email: body.email };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+  login(body: AuthBody): Observable<AccessToken> {
+    const { email, password } = body;
+    return from(this.usersRepository.findOneBy({ email: email })).pipe(
+      map((user) => user.comparePasswords(password)),
+      switchMap((isAuth) => (isAuth ? of(isAuth) : EMPTY)),
+      throwIfEmpty(
+        () => new UnauthorizedException(`email or password is not matched`),
+      ),
+      map(() => ({ access_token: this.jwtService.sign({ email: email }) })),
+    );
   }
 
-  async register(body: AuthBody): Promise<void> {
+  register(body: AuthBody): Observable<void> {
     const { email } = body;
-    const persistedUser = await this.usersRepository.findOneBy({});
 
-    if (persistedUser) {
-      throw new ConflictException('email is already in use');
-    }
+    return from(
+      this.usersRepository.findOneBy({
+        email: email,
+      }),
+    ).pipe(
+      switchMap((persistedUser) => (persistedUser ? of(persistedUser) : EMPTY)),
+      throwIfEmpty(() => new UnauthorizedException(`email is already in use!`)),
+      switchMap(() => {
+        const { password } = body;
+        const newUser: UserModel = new UserModel();
+        newUser.email = email;
+        newUser.password = password;
 
-    const { password } = body;
-    const newUser: UserModel = new UserModel();
-    newUser.email = email;
-    newUser.password = password;
-
-    await this.usersRepository.insert(newUser);
+        return from(this.usersRepository.insert(newUser));
+      }),
+      switchMap(() => EMPTY),
+    );
   }
 
-  async updatePassword(body: UpdatePasswordAuthBody): Promise<void> {
-    const email = this.req.user.email;
-    const persistedUser = await this.usersRepository.findOneBy({ email });
-
+  updatePassword(body: UpdatePasswordAuthBody): Observable<void> {
     const { oldPassword } = body;
-    const isMatched = persistedUser.comparePasswords(oldPassword);
 
-    if (!isMatched) {
-      throw new UnauthorizedException();
-    }
+    return from(
+      this.usersRepository.findOneBy({ email: this.req.user.email }),
+    ).pipe(
+      switchMap((persistedUser) =>
+        of(persistedUser.comparePasswords(oldPassword)).pipe(
+          switchMap((isMatched) => (isMatched ? of(isMatched) : EMPTY)),
+          throwIfEmpty(() => new UnauthorizedException()),
+          map(() => persistedUser),
+        ),
+      ),
+      switchMap((persistedUser) => {
+        const { newPassword } = body;
+        persistedUser.email = this.req.user.email;
+        persistedUser.password = newPassword;
 
-    const { newPassword } = body;
-    persistedUser.email = email;
-    persistedUser.password = newPassword;
-
-    await this.usersRepository.update(persistedUser.email, persistedUser);
+        return from(
+          this.usersRepository.update(persistedUser.email, persistedUser),
+        );
+      }),
+      switchMap(() => EMPTY),
+    );
   }
 }

@@ -1,14 +1,14 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/middlewares/auth.guard';
+import { Controller, Post, Scope, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { CheckoutService } from './checkout.service';
 
-@Controller('checkout')
+@Controller({ path: 'checkout', scope: Scope.DEFAULT })
 export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   checkout() {
-    this.checkoutService.checkout();
+    return this.checkoutService.checkout();
   }
 }

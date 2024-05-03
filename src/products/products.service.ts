@@ -14,14 +14,15 @@ import {
   throwIfEmpty,
 } from 'rxjs';
 import { REQUEST } from '@nestjs/core';
-import { ExpressRequest } from 'src/common/utils/interfaces';
+import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
+import { UserModel } from 'src/common/database/models/user.model';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
     @InjectRepository(ProductModel)
     private readonly productsRepository: Repository<ProductModel>,
-    @Inject(REQUEST) private readonly req: ExpressRequest,
+    @Inject(REQUEST) private readonly req: AuthenticatedRequest,
   ) {}
 
   findAll(
@@ -63,7 +64,7 @@ export class ProductsService {
     newProduct.stock = stock;
     newProduct.price = price;
     newProduct.description = description;
-    newProduct.sellerUser = this.req.user;
+    newProduct.sellerUser = this.req.user as UserModel;
 
     return from(this.productsRepository.save(newProduct));
   }
