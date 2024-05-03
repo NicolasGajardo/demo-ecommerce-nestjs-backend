@@ -57,7 +57,7 @@ export class ProductsService {
     return from(product);
   }
 
-  save(productBody: ProductBody) {
+  save(productBody: ProductBody): Observable<ProductModel> {
     const { name, stock, price, description } = productBody;
     const newProduct = new ProductModel();
     newProduct.name = name;
@@ -69,7 +69,7 @@ export class ProductsService {
     return from(this.productsRepository.save(newProduct));
   }
 
-  update(uuid: string, productBody: ProductBody) {
+  update(uuid: string, productBody: ProductBody): Observable<void> {
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,
@@ -89,12 +89,15 @@ export class ProductsService {
         productPayload.price = price;
         productPayload.description = description;
 
-        return this.productsRepository.update({ uuid: uuid }, productPayload);
+        return from(
+          this.productsRepository.update({ uuid: uuid }, productPayload),
+        );
       }),
+      switchMap(() => EMPTY),
     );
   }
 
-  delete(uuid: string) {
+  delete(uuid: string): Observable<void> {
     return from(
       this.productsRepository.existsBy({
         uuid: uuid,
@@ -105,7 +108,8 @@ export class ProductsService {
       throwIfEmpty(
         () => new NotFoundException(`product: ${uuid} was not found`),
       ),
-      switchMap(() => this.productsRepository.delete({ uuid: uuid })),
+      switchMap(() => from(this.productsRepository.delete({ uuid: uuid }))),
+      switchMap(() => EMPTY),
     );
   }
 }

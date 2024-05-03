@@ -1,6 +1,7 @@
-import { Controller, Post, Scope, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Scope, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { CheckoutService } from './checkout.service';
+import { CheckoutBody } from './dto/checkout.body';
 
 @Controller({ path: 'checkout', scope: Scope.DEFAULT })
 export class CheckoutController {
@@ -8,7 +9,7 @@ export class CheckoutController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  checkout() {
-    return this.checkoutService.checkout();
+  checkout(@Body() body: CheckoutBody) {
+    return this.checkoutService.checkout(body);
   }
 }

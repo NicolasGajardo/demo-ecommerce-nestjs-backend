@@ -2,7 +2,7 @@ export class CheckoutBody {
   products: CheckoutProducts[];
 }
 
-class CheckoutProducts {
+export class CheckoutProducts {
   uuid: string;
   quantity: number;
 }

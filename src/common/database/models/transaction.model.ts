@@ -13,8 +13,8 @@ import { TransactionProductModel } from './transaction-product.model';
 
 @Entity('transaction')
 export class TransactionModel {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  uuid: string;
 
   @Column()
   price: number;

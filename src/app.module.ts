@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CheckoutModule } from './checkout/checkout.module';
     ProductsModule,
     HealthModule,
     CheckoutModule,
+    TransactionsModule,
   ],
 })
 export class AppModule implements NestModule {
