@@ -1,4 +1,8 @@
 export class TransactionBody {
-  id: number;
   price: number;
+  // TODO: crear interfaz transaction product body
+  transactions_products: {
+    product_id: string;
+    quantity: number;
+  }[];
 }

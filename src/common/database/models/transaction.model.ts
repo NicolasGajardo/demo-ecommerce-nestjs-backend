@@ -32,6 +32,10 @@ export class TransactionModel {
   @OneToMany(
     () => TransactionProductModel,
     (transactionProduct) => transactionProduct.transaction,
+    {
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+    },
   )
-  transactionsProducts: TransactionProductModel;
+  transactionsProducts: TransactionProductModel[];
 }

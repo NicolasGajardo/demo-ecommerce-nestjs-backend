@@ -5,6 +5,7 @@ import { UserModel } from './models/user.model';
 import { ProductModel } from './models/product.model';
 import { TransactionProductModel } from './models/transaction-product.model';
 import { TransactionModel } from './models/transaction.model';
+import { ProductRepository } from './repositories/products.repository';
 
 const ENTITIES = [
   UserModel,
@@ -34,6 +35,7 @@ const ORM_FEATURES = TypeOrmModule.forFeature(ENTITIES);
     }),
     ORM_FEATURES,
   ],
-  exports: [ORM_FEATURES],
+  providers: [ProductRepository],
+  exports: [ORM_FEATURES, ProductRepository],
 })
 export class DatabaseModule {}

@@ -15,6 +15,8 @@ export class ErrorExceptionFilter {
 
     const ctx = host.switchToHttp();
 
+    console.error('ERROR', exception);
+
     const httpStatus =
       exception instanceof HttpException
         ? exception.getStatus()

@@ -6,6 +6,7 @@ import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { TransactionProductModule } from './transaction-product/transaction-product.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     HealthModule,
     CheckoutModule,
     TransactionsModule,
+    TransactionProductModule,
   ],
 })
 export class AppModule implements NestModule {

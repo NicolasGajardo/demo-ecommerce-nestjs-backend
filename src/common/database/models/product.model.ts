@@ -33,8 +33,18 @@ export class ProductModel {
   @UpdateDateColumn()
   modifiedAt: Date;
 
-  @OneToMany(() => TransactionProductModel, (trx) => trx.products)
+  @OneToMany(() => TransactionProductModel, (trx) => trx.product)
   transactions: TransactionProductModel[];
+
+  @OneToMany(
+    () => TransactionProductModel,
+    (transactionProduct) => transactionProduct.transaction,
+    {
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+    },
+  )
+  transactionsProducts: TransactionProductModel[];
 
   @ManyToOne(() => UserModel, (user) => user.products)
   sellerUser: UserModel;

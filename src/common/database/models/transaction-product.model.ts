@@ -27,11 +27,16 @@ export class TransactionProductModel {
   @ManyToOne(
     () => TransactionModel,
     (transaction) => transaction.transactionsProducts,
+    {
+      eager: true,
+    },
   )
   @JoinColumn()
   transaction: TransactionModel;
 
-  @ManyToOne(() => ProductModel)
+  @ManyToOne(() => ProductModel, (product) => product.transactionsProducts, {
+    eager: true,
+  })
   @JoinColumn()
-  products: ProductModel[];
+  product: ProductModel;
 }

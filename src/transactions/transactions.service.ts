@@ -12,10 +12,10 @@ import {
 } from 'rxjs';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { TransactionModel } from 'src/common/database/models/transaction.model';
-import { UserModel } from 'src/common/database/models/user.model';
 import { Repository } from 'typeorm';
 import { TransactionsQueryParams } from './dto/transactions.query-params';
 import { TransactionBody } from './dto/transaction.body';
+import { Mapper } from 'src/common/utils/mapper';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionsService {
@@ -49,18 +49,26 @@ export class TransactionsService {
   }
 
   findById(uuid: string): Observable<TransactionModel> {
-    const transaction = this.transactionsRepository.findOneBy({
-      uuid: uuid,
-    });
-
-    return from(transaction);
+    return from(
+      this.transactionsRepository.findOneBy({
+        uuid: uuid,
+      }),
+    ).pipe(
+      switchMap((transactionExists) =>
+        transactionExists ? of(transactionExists) : EMPTY,
+      ),
+      throwIfEmpty(
+        () => new NotFoundException(`transaction: ${uuid} was not found`),
+      ),
+    );
   }
 
-  save(transactionBody: TransactionBody) {
-    const { price } = transactionBody;
-    const newtransaction = new TransactionModel();
-    newtransaction.price = price;
-    newtransaction.buyerUser = this.req.user as UserModel;
+  save(transactionBody: Partial<TransactionBody>) {
+    const newtransaction: TransactionModel =
+      Mapper.mapTransactionBodyToTransactionModel(
+        transactionBody,
+        this.req.user,
+      );
 
     return from(this.transactionsRepository.save(newtransaction));
   }
