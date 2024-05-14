@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("MYSQL_URL")
+}
+
+model product {
+  uuid                String                @id @db.VarChar(36)
+  name                String                @db.VarChar(255)
+  price               Int
+  description         String                @db.VarChar(255)
+  createdAt           DateTime              @default(now()) @db.DateTime(6)
+  modifiedAt          DateTime              @default(now()) @db.DateTime(6)
+  stock               Int
+  sellerUserEmail     String?               @db.VarChar(255)
+  user                user?                 @relation(fields: [sellerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_d608e42121244bad93a5c47efe6")
+  transaction_product transaction_product[]
+
+  @@index([sellerUserEmail], map: "FK_d608e42121244bad93a5c47efe6")
+}
+
+model transaction {
+  price               Int
+  createdAt           DateTime              @default(now()) @db.DateTime(6)
+  updatedAt           DateTime              @default(now()) @db.DateTime(6)
+  buyerUserEmail      String?               @db.VarChar(255)
+  uuid                String                @id @db.VarChar(36)
+  user                user?                 @relation(fields: [buyerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_578bfd518f89f1c012d8950af17")
+  transaction_product transaction_product[]
+
+  @@index([buyerUserEmail], map: "FK_578bfd518f89f1c012d8950af17")
+}
+
+model transaction_product {
+  id              Int          @id @default(autoincrement())
+  quantity        Int
+  createdAt       DateTime     @default(now()) @db.DateTime(6)
+  updatedAt       DateTime     @default(now()) @db.DateTime(6)
+  productUuid     String?      @db.VarChar(36)
+  transactionUuid String?      @db.VarChar(36)
+  product         product?     @relation(fields: [productUuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "FK_861090f78e109917f904969388a")
+  transaction     transaction? @relation(fields: [transactionUuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "FK_e978405d315a22df73ea16501af")
+
+  @@index([productUuid], map: "FK_861090f78e109917f904969388a")
+  @@index([transactionUuid], map: "FK_e978405d315a22df73ea16501af")
+}
+
+model user {
+  email       String        @id @db.VarChar(255)
+  password    String        @db.VarChar(255)
+  createdAt   DateTime      @default(now()) @db.DateTime(6)
+  modifiedAt  DateTime      @default(now()) @db.DateTime(6)
+  product     product[]
+  transaction transaction[]
+}
