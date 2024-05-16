@@ -18,7 +18,7 @@ import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { HttpStatusCode } from 'axios';
 import { Observable, map } from 'rxjs';
 import { Response } from 'express';
-import { ProductModel } from 'src/common/database/models/product.model';
+import { product as ProductModel } from '@prisma/client';
 
 @Controller({ path: 'products', scope: Scope.REQUEST })
 export class ProductsController {
@@ -28,12 +28,18 @@ export class ProductsController {
   getProducts(
     @Query() productsQueryParamsDto: ProductsQueryParams,
   ): Observable<{ data: ProductModel[]; count: number }> {
-    return this.productsService.findAll(productsQueryParamsDto);
+    const { category, limit, page, sortBy = 'desc' } = productsQueryParamsDto;
+    return this.productsService.findAll({
+      take: Number(limit) || 10,
+      skip: Number(page) * Number(limit) || 0,
+      orderBy: { createdAt: sortBy },
+      where: { name: category },
+    });
   }
 
   @Get(':id')
   getProduct(@Param('id') id: string): Observable<ProductModel> {
-    return this.productsService.findById(id);
+    return this.productsService.findById({ uuid: id });
   }
 
   @Post()
@@ -42,14 +48,22 @@ export class ProductsController {
     @Body() body: ProductBody,
     @Res() res: Response,
   ): Observable<Response> {
-    return this.productsService.save(body).pipe(
-      map((product) => {
-        return res
-          .location('/products/' + product.uuid)
-          .status(HttpStatusCode.Created)
-          .send();
-      }),
-    );
+    const { description, name, price, stock } = body;
+    return this.productsService
+      .save({
+        description: description,
+        name: name,
+        price: price,
+        stock: stock,
+      })
+      .pipe(
+        map((product) => {
+          return res
+            .location('/products/' + product.uuid)
+            .status(HttpStatusCode.Created)
+            .send();
+        }),
+      );
   }
 
   @Put(':id')
@@ -59,11 +73,13 @@ export class ProductsController {
     @Body() body: ProductBody,
     @Res() res: Response,
   ): Observable<Response> {
-    return this.productsService.update(id, body).pipe(
-      map(() => {
-        return res.status(HttpStatusCode.NoContent).send();
-      }),
-    );
+    return this.productsService
+      .update({ data: body, where: { uuid: id } })
+      .pipe(
+        map(() => {
+          return res.status(HttpStatusCode.NoContent).send();
+        }),
+      );
   }
 
   @Delete(':id')
@@ -72,7 +88,7 @@ export class ProductsController {
     @Param('id') id: string,
     @Res() res: Response,
   ): Observable<Response> {
-    return this.productsService.delete(id).pipe(
+    return this.productsService.delete({ uuid: id }).pipe(
       map(() => {
         return res.status(HttpStatusCode.NoContent).send();
       }),

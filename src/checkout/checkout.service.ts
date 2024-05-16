@@ -38,31 +38,34 @@ export class CheckoutService {
     trx.price = 0;
 
     for (const checkoutProduct of checkoutProducts) {
-      const obs$ = this.productsService.findById(checkoutProduct.uuid).pipe(
-        switchMap((product) => {
-          const newStock = product.stock - checkoutProduct.quantity;
+      const obs$ = this.productsService
+        .findById({ uuid: checkoutProduct.uuid })
+        .pipe(
+          switchMap((product) => {
+            const newStock = product.stock - checkoutProduct.quantity;
 
-          if (newStock < 0) {
-            throw new UnprocessableEntityException(
-              `The product [${product.uuid}] is out of stock`,
-            );
-          }
+            if (newStock < 0) {
+              throw new UnprocessableEntityException(
+                `The product [${product.uuid}] is out of stock`,
+              );
+            }
 
-          return this.productsService
-            .update(product.uuid, {
-              stock: newStock,
-            })
-            .pipe(
-              switchMap(() => {
-                trx.price += checkoutProduct.quantity * product.price;
-                return of({
-                  product_id: product.uuid,
-                  quantity: checkoutProduct.quantity,
-                });
-              }),
-            );
-        }),
-      );
+            return this.productsService
+              .update({
+                where: { uuid: product.uuid },
+                data: { stock: newStock },
+              })
+              .pipe(
+                switchMap(() => {
+                  trx.price += checkoutProduct.quantity * product.price;
+                  return of({
+                    product_id: product.uuid,
+                    quantity: checkoutProduct.quantity,
+                  });
+                }),
+              );
+          }),
+        );
 
       obsList.push(obs$);
     }

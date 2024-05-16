@@ -6,6 +6,7 @@ import { ProductModel } from './models/product.model';
 import { TransactionProductModel } from './models/transaction-product.model';
 import { TransactionModel } from './models/transaction.model';
 import { ProductRepository } from './repositories/products.repository';
+import { PrismaService } from './prisma.service';
 
 const ENTITIES = [
   UserModel,
@@ -29,13 +30,13 @@ const ORM_FEATURES = TypeOrmModule.forFeature(ENTITIES);
           database: config.get<string>('MYSQL_DATABASE'),
           entities: ENTITIES,
           // TODO cambiar
-          synchronize: true,
+          synchronize: false,
         };
       },
     }),
     ORM_FEATURES,
   ],
-  providers: [ProductRepository],
-  exports: [ORM_FEATURES, ProductRepository],
+  providers: [ProductRepository, PrismaService],
+  exports: [ORM_FEATURES, ProductRepository, PrismaService],
 })
 export class DatabaseModule {}
