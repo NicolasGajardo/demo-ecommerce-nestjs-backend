@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
 import { Observable, forkJoin, from, map, of, switchMap, tap } from 'rxjs';
 import { REQUEST } from '@nestjs/core';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
@@ -37,7 +37,7 @@ export class ProductsService {
       }),
     );
 
-    return forkJoin({ data$, total$ }).pipe(tap(console.log));
+    return forkJoin({ data$, total$ }).pipe(tap(Logger.debug));
   }
 
   findById(id: string): Observable<ProductModel> {
@@ -45,7 +45,7 @@ export class ProductsService {
       this.prisma.product.findUnique({
         where: { id: id },
       }),
-    ).pipe(tap(console.log));
+    ).pipe(tap(Logger.debug));
   }
 
   save(body: ProductBody): Observable<ProductModel> {
@@ -62,7 +62,7 @@ export class ProductsService {
     return from(
       this.prisma.product.create({ data: data, select: { id: true } }),
     ).pipe(
-      tap(console.log),
+      tap(Logger.debug),
       map((product) => product.uuid),
     );
   }
@@ -74,7 +74,7 @@ export class ProductsService {
         where: { id: id },
       }),
     ).pipe(
-      tap(console.log),
+      tap(Logger.debug),
       switchMap(() => of(null)),
     );
   }
@@ -85,7 +85,7 @@ export class ProductsService {
         where: { id: id },
       }),
     ).pipe(
-      tap(console.log),
+      tap(Logger.debug),
       switchMap(() => of(null)),
     );
   }

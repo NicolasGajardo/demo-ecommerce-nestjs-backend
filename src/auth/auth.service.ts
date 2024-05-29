@@ -4,7 +4,6 @@ import {
   Scope,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserModel } from 'src/common/database/models/user.model';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';
 import { REQUEST } from '@nestjs/core';
@@ -22,6 +21,7 @@ import {
 } from 'rxjs';
 import { PrismaService } from 'src/common/database/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { User as UserModel } from '@prisma/client';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -68,9 +68,10 @@ export class AuthService {
         }
 
         const { password } = body;
-        const newUser: UserModel = new UserModel();
-        newUser.email = persistedUser.email;
-        newUser.password = password;
+        const newUser = {
+          email: persistedUser.email,
+          password: password,
+        };
 
         return from(
           this.prisma
@@ -103,7 +104,7 @@ export class AuthService {
     ).pipe(
       switchMap((persistedUser) => {
         const { old_password, new_password } = body;
-        const userPayload = new UserModel();
+        const userPayload: Partial<UserModel> = {};
 
         if (bcrypt.compareSync(old_password, persistedUser?.password)) {
           userPayload.password = new_password;
