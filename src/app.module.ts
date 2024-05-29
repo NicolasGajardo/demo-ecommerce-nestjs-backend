@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { TransactionProductModule } from './transaction-product/transaction-product.module';
+import { HttpExceptionFilter } from './common/middlewares/http-exception.filter';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { TransactionProductModule } from './transaction-product/transaction-prod
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply();
+    consumer.apply(HttpExceptionFilter).exclude('health').forRoutes('api');
   }
 }
