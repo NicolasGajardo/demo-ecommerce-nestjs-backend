@@ -2,8 +2,8 @@ import { IsNotEmpty } from 'class-validator';
 
 export class UpdatePasswordAuthBody {
   @IsNotEmpty()
-  oldPassword: string;
+  old_password: string;
 
   @IsNotEmpty()
-  newPassword: string;
+  new_password: string;
 }

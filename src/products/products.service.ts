@@ -1,40 +1,31 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
-import {
-  EMPTY,
-  Observable,
-  forkJoin,
-  from,
-  map,
-  of,
-  switchMap,
-  tap,
-  throwIfEmpty,
-} from 'rxjs';
+import { Observable, forkJoin, from, map, of, switchMap, tap } from 'rxjs';
 import { REQUEST } from '@nestjs/core';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { PrismaService } from 'src/common/database/prisma.service';
-import { Prisma, product as ProductModel } from '@prisma/client';
+import { Product as ProductModel } from '@prisma/client';
+import { ProductsQueryParams } from './dto/products.query-params';
+import { ProductBody } from './dto/product.body';
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
-    // private readonly productsRepository: ProductRepository,
     private readonly prisma: PrismaService,
   ) {}
 
-  findAll(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.productWhereUniqueInput;
-    where?: Prisma.productWhereInput;
-    orderBy?: Prisma.productOrderByWithRelationInput;
-  }): Observable<{ data: ProductModel[]; count: number }> {
-    const { skip, take, cursor, where, orderBy } = params;
+  findAll(
+    productsQueryParamsDto: ProductsQueryParams,
+  ): Observable<{ data: ProductModel[]; count: number }> {
+    const { category, limit, page, sortBy = 'desc' } = productsQueryParamsDto;
+    const take = Number(limit) || 10;
+    const skip = Number(page) * Number(limit) || 0;
+    const orderBy = { createdAt: sortBy };
+    const where = { name: category };
+
     const data$: Observable<any> = from(
       this.prisma.product.findMany({
         skip,
         take,
-        cursor,
         where,
         orderBy,
       }),
@@ -42,7 +33,6 @@ export class ProductsService {
 
     const total$: Observable<any> = from(
       this.prisma.product.count({
-        cursor,
         where,
       }),
     );
@@ -50,57 +40,53 @@ export class ProductsService {
     return forkJoin({ data$, total$ }).pipe(tap(console.log));
   }
 
-  findById(
-    productWhereUniqueInput: Prisma.productWhereUniqueInput,
-  ): Observable<ProductModel> {
+  findById(id: string): Observable<ProductModel> {
     return from(
       this.prisma.product.findUnique({
-        where: productWhereUniqueInput,
+        where: { id: id },
       }),
     ).pipe(tap(console.log));
-
-    // return from(this.productsRepository.findBy(id)).pipe(
-    //   switchMap((transactionExists) =>
-    //     transactionExists ? of(transactionExists) : EMPTY,
-    //   ),
-    //   throwIfEmpty(() => new NotFoundException(`product: ${id} was not found`)),
-    // );
   }
 
-  save(data: Prisma.productCreateInput): Observable<ProductModel> {
-    // const newProduct: ProductModel = Mapper.mapProductBodyToProductModel(
-    //   productBody,
-    //   this.req.user,
-    // );
+  save(body: ProductBody): Observable<ProductModel> {
+    const { description, name, price, stock } = body;
 
-    return from(this.prisma.product.create({ data })).pipe(tap(console.log));
+    const data = {
+      description: description,
+      name: name,
+      price: price,
+      stock: stock,
+      sellerUserEmail: this.req.user.email,
+    };
+
+    return from(
+      this.prisma.product.create({ data: data, select: { id: true } }),
+    ).pipe(
+      tap(console.log),
+      map((product) => product.uuid),
+    );
   }
 
-  update(params: {
-    where: Prisma.productWhereUniqueInput;
-    data: Prisma.productUpdateInput;
-  }): Observable<ProductModel> {
-    const { where, data } = params;
+  update(id: string, body: Partial<ProductBody>): Observable<void> {
     return from(
       this.prisma.product.update({
-        data,
-        where,
-      }),
-    ).pipe(tap(console.log));
-  }
-
-  delete(where: Prisma.productWhereUniqueInput): Observable<ProductModel> {
-    return from(
-      this.prisma.product.delete({
-        where,
+        data: body,
+        where: { id: id },
       }),
     ).pipe(
       tap(console.log),
-      // switchMap((productExists) => (productExists ? of(productExists) : EMPTY)),
-      // throwIfEmpty(
-      //   () => new NotFoundException(`product: ${uuid} was not found`),
-      // ),
-      // switchMap(() => from(this.productsRepository.deleteById(uuid))),
+      switchMap(() => of(null)),
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    return from(
+      this.prisma.product.delete({
+        where: { id: id },
+      }),
+    ).pipe(
+      tap(console.log),
+      switchMap(() => of(null)),
     );
   }
 }

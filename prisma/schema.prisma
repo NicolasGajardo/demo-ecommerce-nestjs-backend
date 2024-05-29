@@ -7,52 +7,52 @@ datasource db {
   url      = env("MYSQL_URL")
 }
 
-model product {
-  uuid                String                @id @default(uuid()) @db.VarChar(36)
-  name                String                @db.VarChar(255)
-  price               Int
-  description         String                @db.VarChar(255)
-  createdAt           DateTime              @default(now()) @db.DateTime(6)
-  modifiedAt          DateTime              @default(now()) @db.DateTime(6)
-  stock               Int
-  sellerUserEmail     String?               @db.VarChar(255)
-  user                user?                 @relation(fields: [sellerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_d608e42121244bad93a5c47efe6")
-  transaction_product transaction_product[]
+model Product {
+  id              String                   @id @default(uuid()) @db.VarChar(36)
+  price           Int
+  stock           Int
+  name            String                   @db.VarChar(255)
+  description     String                   @db.VarChar(255)
+  createdAt       DateTime                 @default(now()) @db.DateTime(6)
+  updatedAt       DateTime                 @updatedAt @db.DateTime(6)
+  sellerUserEmail String?                  @db.VarChar(255)
+  user            User?                    @relation(fields: [sellerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_d608e42121244bad93a5c47efe6")
+  transactions    TransactionsOnProducts[]
 
   @@index([sellerUserEmail], map: "FK_d608e42121244bad93a5c47efe6")
 }
 
-model transaction {
-  price               Int
-  createdAt           DateTime              @default(now()) @db.DateTime(6)
-  updatedAt           DateTime              @default(now()) @db.DateTime(6)
-  buyerUserEmail      String?               @db.VarChar(255)
-  uuid                String                @id @default(uuid()) @db.VarChar(36)
-  user                user?                 @relation(fields: [buyerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_578bfd518f89f1c012d8950af17")
-  transaction_product transaction_product[]
+model Transaction {
+  id             String                   @id @default(uuid()) @db.VarChar(36)
+  price          Int
+  createdAt      DateTime                 @default(now()) @db.DateTime(6)
+  updatedAt      DateTime                 @updatedAt @db.DateTime(6)
+  buyerUserEmail String?                  @db.VarChar(255)
+  user           User?                    @relation(fields: [buyerUserEmail], references: [email], onDelete: NoAction, onUpdate: NoAction, map: "FK_578bfd518f89f1c012d8950af17")
+  products       TransactionsOnProducts[]
 
   @@index([buyerUserEmail], map: "FK_578bfd518f89f1c012d8950af17")
 }
 
-model transaction_product {
-  id              Int          @id @default(autoincrement())
-  quantity        Int
-  createdAt       DateTime     @default(now()) @db.DateTime(6)
-  updatedAt       DateTime     @default(now()) @db.DateTime(6)
-  productUuid     String?      @db.VarChar(36)
-  transactionUuid String?      @db.VarChar(36)
-  product         product?     @relation(fields: [productUuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "FK_861090f78e109917f904969388a")
-  transaction     transaction? @relation(fields: [transactionUuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "FK_e978405d315a22df73ea16501af")
+model TransactionsOnProducts {
+  quantity      Int
+  createdAt     DateTime    @default(now()) @db.DateTime(6)
+  updatedAt     DateTime    @updatedAt @db.DateTime(6)
+  productId     String      @db.VarChar(36)
+  transactionId String      @db.VarChar(36)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_861090f78e109917f904969388a")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_e978405d315a22df73ea16501af")
 
-  @@index([productUuid], map: "FK_861090f78e109917f904969388a")
-  @@index([transactionUuid], map: "FK_e978405d315a22df73ea16501af")
+  @@id([transactionId, productId])
+  @@index([productId], map: "FK_861090f78e109917f904969388a")
+  @@index([transactionId], map: "FK_e978405d315a22df73ea16501af")
 }
 
-model user {
+model User {
   email       String        @id @db.VarChar(255)
   password    String        @db.VarChar(255)
   createdAt   DateTime      @default(now()) @db.DateTime(6)
-  modifiedAt  DateTime      @default(now()) @db.DateTime(6)
-  product     product[]
-  transaction transaction[]
+  updatedAt   DateTime      @updatedAt @db.DateTime(6)
+  product     Product[]
+  transaction Transaction[]
 }

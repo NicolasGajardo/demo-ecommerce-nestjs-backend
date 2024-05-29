@@ -1,92 +1,86 @@
-import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { InjectRepository } from '@nestjs/typeorm';
-import {
-  EMPTY,
-  Observable,
-  from,
-  map,
-  of,
-  switchMap,
-  throwIfEmpty,
-} from 'rxjs';
+import { Observable, forkJoin, from, map, switchMap, tap } from 'rxjs';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
-import { TransactionModel } from 'src/common/database/models/transaction.model';
-import { Repository } from 'typeorm';
 import { TransactionsQueryParams } from './dto/transactions.query-params';
 import { TransactionBody } from './dto/transaction.body';
-import { Mapper } from 'src/common/utils/mapper';
+import { PrismaService } from 'src/common/database/prisma.service';
+import { Prisma, Transaction as TransactionModel } from '@prisma/client';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionsService {
   constructor(
-    @InjectRepository(TransactionModel)
-    private readonly transactionsRepository: Repository<TransactionModel>,
+    private readonly prisma: PrismaService,
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
   ) {}
 
   findAll(
     req: TransactionsQueryParams,
   ): Observable<{ data: TransactionModel[]; count: number }> {
-    const { limit, page, sortBy } = req;
-    return from(
-      limit
-        ? this.transactionsRepository.findAndCount({
-            order: { createdAt: sortBy || 'DESC' },
-            take: limit as number,
-            skip: (page || 0) * (limit as number),
-          })
-        : this.transactionsRepository.findAndCount(),
-    ).pipe(
-      map((transactions) => {
-        const [result, total] = transactions;
-        return {
-          data: result,
-          count: total,
-        };
+    const { limit, page, sortBy = 'desc' } = req;
+
+    const take = Number(limit) || 10;
+    const skip = Number(page) * Number(limit) || 0;
+    const orderBy = { createdAt: sortBy };
+
+    const data$: Observable<any> = from(
+      this.prisma.transaction.findMany({
+        skip,
+        take,
+        orderBy,
       }),
     );
+
+    const total$: Observable<any> = from(this.prisma.transaction.count({}));
+
+    return forkJoin({ data$, total$ }).pipe(tap(console.log));
   }
 
-  findById(uuid: string): Observable<TransactionModel> {
+  findById(id: string): Observable<TransactionModel> {
+    const trxWhereUniqueInput: Prisma.TransactionWhereUniqueInput = {
+      id: id,
+    };
+
     return from(
-      this.transactionsRepository.findOneBy({
-        uuid: uuid,
+      this.prisma.transaction.findUnique({
+        where: trxWhereUniqueInput,
       }),
-    ).pipe(
-      switchMap((transactionExists) =>
-        transactionExists ? of(transactionExists) : EMPTY,
-      ),
-      throwIfEmpty(
-        () => new NotFoundException(`transaction: ${uuid} was not found`),
-      ),
-    );
+    ).pipe(tap(console.log));
   }
 
   save(transactionBody: Partial<TransactionBody>) {
-    const newtransaction: TransactionModel =
-      Mapper.mapTransactionBodyToTransactionModel(
-        transactionBody,
-        this.req.user,
-      );
+    const { price } = transactionBody;
 
-    return from(this.transactionsRepository.save(newtransaction));
-  }
-
-  delete(uuid: string) {
     return from(
-      this.transactionsRepository.existsBy({
-        uuid: uuid,
-        buyerUser: this.req.user,
+      this.prisma.transaction.create({
+        data: {
+          price: price,
+          buyerUserEmail: this.req.user.email,
+          user: { connect: { email: this.req.user.email } },
+        } as Prisma.TransactionCreateInput,
       }),
     ).pipe(
-      switchMap((transactionExists) =>
-        transactionExists ? of(transactionExists) : EMPTY,
+      map((trx) =>
+        transactionBody.products.map((products) => ({
+          productId: products.product_id,
+          quantity: products.quantity,
+          transactionId: trx.id,
+        })),
       ),
-      throwIfEmpty(
-        () => new NotFoundException(`transaction: ${uuid} was not found`),
+      switchMap((trxsOnProducts) =>
+        this.prisma.transactionsOnProducts.createMany({ data: trxsOnProducts }),
       ),
-      switchMap(() => this.transactionsRepository.delete({ uuid: uuid })),
+    );
+  }
+
+  delete(id: string) {
+    return from(
+      this.prisma.transaction.delete({
+        where: {
+          id: id,
+          buyerUserEmail: this.req.user.email,
+        },
+      }),
     );
   }
 }

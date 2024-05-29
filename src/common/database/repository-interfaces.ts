@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
-import {
-  DeleteResult,
-  FindOptionsWhere,
-  ObjectId,
-  UpdateResult,
-} from 'typeorm';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+// import {
+//   DeleteResult,
+//   FindOptionsWhere,
+//   ObjectId,
+//   UpdateResult,
+// } from 'typeorm';
+// import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 type CriteriaType =
   | string

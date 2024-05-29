@@ -4,9 +4,9 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  Put,
   UseGuards,
   Scope,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthBody } from './dto/auth.body';
@@ -18,19 +18,21 @@ import { AccessToken } from './interface/access-token.interface';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.CREATED)
   @Post('register')
   register(@Body() body: AuthBody): Observable<void> {
     return this.authService.register(body);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   login(@Body() body: AuthBody): Observable<AccessToken> {
     return this.authService.login(body);
   }
 
-  @Put('update-password')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('update-password')
   updatePassword(@Body() body: UpdatePasswordAuthBody): Observable<void> {
     return this.authService.updatePassword(body);
   }

@@ -3,6 +3,6 @@ export class CheckoutBody {
 }
 
 export class CheckoutProducts {
-  uuid: string;
+  id: string;
   quantity: number;
 }

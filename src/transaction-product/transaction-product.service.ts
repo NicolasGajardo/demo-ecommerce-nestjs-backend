@@ -8,15 +8,14 @@ import { Repository } from 'typeorm';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionProductService {
-  constructor(
-    @InjectRepository(TransactionProductModel)
-    private readonly transactionProductsRepository: Repository<TransactionProductModel>,
-    @Inject(REQUEST) private readonly req: AuthenticatedRequest,
-  ) {}
-
-  save(
-    trxBody: Partial<TransactionProductModel>,
-  ): Observable<TransactionProductModel> {
-    return from(this.transactionProductsRepository.save(trxBody));
-  }
+  // constructor(
+  //   // @InjectRepository(TransactionProductModel)
+  //   // private readonly transactionProductsRepository: Repository<TransactionProductModel>,
+  //   // @Inject(REQUEST) private readonly req: AuthenticatedRequest,
+  // ) {}
+  // save(
+  //   trxBody: Partial<TransactionProductModel>,
+  // ): Observable<TransactionProductModel> {
+  //   // return from(this.transactionProductsRepository.save(trxBody));
+  // }
 }

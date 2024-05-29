@@ -4,9 +4,7 @@ import {
   Scope,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from 'src/common/database/models/user.model';
-import { Repository } from 'typeorm';
 import { AuthBody } from './dto/auth.body';
 import { JwtService } from '@nestjs/jwt';
 import { REQUEST } from '@nestjs/core';
@@ -22,21 +20,28 @@ import {
   switchMap,
   throwIfEmpty,
 } from 'rxjs';
+import { PrismaService } from 'src/common/database/prisma.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
   constructor(
-    @InjectRepository(UserModel)
-    private readonly usersRepository: Repository<UserModel>,
+    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
   ) {}
 
   login(body: AuthBody): Observable<AccessToken> {
     const { email, password } = body;
-    return from(this.usersRepository.findOneBy({ email: email })).pipe(
-      map((user) => user.comparePasswords(password)),
-      switchMap((isAuth) => (isAuth ? of(isAuth) : EMPTY)),
+
+    return from(
+      this.prisma.user.findUnique({
+        where: { email: email },
+      }),
+    ).pipe(
+      switchMap((user) =>
+        bcrypt.compareSync(password, user?.password) ? of(user.email) : EMPTY,
+      ),
       throwIfEmpty(
         () => new UnauthorizedException(`email or password is not matched`),
       ),
@@ -48,47 +53,89 @@ export class AuthService {
     const { email } = body;
 
     return from(
-      this.usersRepository.findOneBy({
-        email: email,
+      this.prisma.user.findUnique({
+        select: {
+          email: true,
+        },
+        where: {
+          email: email,
+        },
       }),
     ).pipe(
-      switchMap((persistedUser) => (persistedUser ? of(persistedUser) : EMPTY)),
-      throwIfEmpty(() => new UnauthorizedException(`email is already in use!`)),
-      switchMap(() => {
+      switchMap((persistedUser) => {
+        if (persistedUser) {
+          throw new UnauthorizedException(`email is already in use!`);
+        }
+
         const { password } = body;
         const newUser: UserModel = new UserModel();
-        newUser.email = email;
+        newUser.email = persistedUser.email;
         newUser.password = password;
 
-        return from(this.usersRepository.insert(newUser));
+        return from(
+          this.prisma
+            .$extends({
+              name: 'Encrypt user password',
+              query: {
+                user: {
+                  create({ args, query }) {
+                    const salt = bcrypt.genSaltSync();
+                    args.data.password = bcrypt.hashSync(
+                      args.data.password,
+                      salt,
+                    );
+
+                    return query(args);
+                  },
+                },
+              },
+            })
+            .user.create({ data: newUser }),
+        );
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => of(null)),
     );
   }
 
   updatePassword(body: UpdatePasswordAuthBody): Observable<void> {
-    const { oldPassword } = body;
-
     return from(
-      this.usersRepository.findOneBy({ email: this.req.user.email }),
+      this.prisma.user.findUnique({ where: { email: this.req.user.email } }),
     ).pipe(
-      switchMap((persistedUser) =>
-        of(persistedUser.comparePasswords(oldPassword)).pipe(
-          switchMap((isMatched) => (isMatched ? of(isMatched) : EMPTY)),
-          throwIfEmpty(() => new UnauthorizedException()),
-          map(() => persistedUser),
-        ),
-      ),
       switchMap((persistedUser) => {
-        const { newPassword } = body;
-        persistedUser.email = this.req.user.email;
-        persistedUser.password = newPassword;
+        const { old_password, new_password } = body;
+        const userPayload = new UserModel();
+
+        if (bcrypt.compareSync(old_password, persistedUser?.password)) {
+          userPayload.password = new_password;
+        } else {
+          throw new UnauthorizedException(`old password is not matched`);
+        }
 
         return from(
-          this.usersRepository.update(persistedUser.email, persistedUser),
+          this.prisma
+            .$extends({
+              name: 'Encrypt user password',
+              query: {
+                user: {
+                  update({ args, query }) {
+                    const salt = bcrypt.genSaltSync();
+                    args.data.password = bcrypt.hashSync(
+                      args.data.password as string,
+                      salt,
+                    );
+
+                    return query(args);
+                  },
+                },
+              },
+            })
+            .user.update({
+              where: { email: persistedUser.email },
+              data: userPayload,
+            }),
         );
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => of(null)),
     );
   }
 }
