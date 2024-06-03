@@ -6,7 +6,6 @@ import { ProductsModule } from './products/products.module';
 import { HealthModule } from './health/health.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { TransactionsModule } from './transactions/transactions.module';
-import { TransactionProductModule } from './transaction-product/transaction-product.module';
 import { HttpExceptionFilter } from './common/middlewares/http-exception.filter';
 
 @Module({
@@ -20,7 +19,6 @@ import { HttpExceptionFilter } from './common/middlewares/http-exception.filter'
     HealthModule,
     CheckoutModule,
     TransactionsModule,
-    TransactionProductModule,
   ],
 })
 export class AppModule implements NestModule {

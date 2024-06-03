@@ -1,53 +1,36 @@
-// import { Observable } from 'rxjs';
-// // import {
-// //   DeleteResult,
-// //   FindOptionsWhere,
-// //   ObjectId,
-// //   UpdateResult,
-// // } from 'typeorm';
-// // import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { Observable } from 'rxjs';
+import { AssingObjectTypeToProps, XOR } from '../utils/types';
+import { Prisma } from '@prisma/client';
 
-// type CriteriaType =
-//   | string
-//   | string[]
-//   | number
-//   | number[]
-//   | Date
-//   | Date[]
-//   | ObjectId
-//   | ObjectId[]
-//   | FindOptionsWhere<object>;
+export interface Findable<T extends { id?: string }> {
+  findAndCount(
+    searchColumns: Partial<T>,
+    searchOptions?: {
+      sortBy?: AssingObjectTypeToProps<T, Prisma.SortOrder>;
+      page?: number;
+      limit?: number;
+    },
+  ): Observable<{
+    data: T[];
+    count: number;
+  }>;
 
-// export interface Findable<T> {
-//   findAndCount(
-//     searchColumns: Partial<T>,
-//     searchOptions?: {
-//       sortBy?: 'DESC' | 'ASC';
-//       page?: number;
-//       limit?: number;
-//     },
-//   ): Observable<{
-//     data: T[];
-//     count: number;
-//   }>;
-//   findBy(criteria: CriteriaType): Observable<T>;
-// }
+  findById?(id: string): Observable<T>;
+}
 
-// export interface Savable<T> {
-//   save(payload: Partial<T>): Observable<T>;
-// }
+export interface Savable<T extends { id?: string }> {
+  save(
+    payload: XOR<Prisma.ProductCreateInput, Prisma.ProductUncheckedCreateInput>,
+  ): Observable<T | Pick<T, 'id'>>;
+}
 
-// export interface Existable<T> {
-//   existsBy(searchColumns: FindOptionsWhere<T>): Observable<boolean>;
-// }
+export interface Updatable<T extends { id?: string }> {
+  updateById(
+    id: string,
+    payload: Partial<T>,
+  ): Observable<T | Pick<T, 'id'> | void>;
+}
 
-// export interface Updatable<T> {
-//   updateBy(
-//     criteria: CriteriaType,
-//     payload: QueryDeepPartialEntity<T>,
-//   ): Observable<UpdateResult>;
-// }
-
-// export interface Deletable {
-//   deleteById(id: string | number): Observable<DeleteResult>;
-// }
+export interface Deletable {
+  deleteById(id: string): Observable<void>;
+}

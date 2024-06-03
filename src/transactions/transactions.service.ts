@@ -1,4 +1,10 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotImplementedException,
+  Scope,
+} from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Observable, forkJoin, from, map, switchMap, tap } from 'rxjs';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
@@ -33,44 +39,40 @@ export class TransactionsService {
 
     const total$: Observable<any> = from(this.prisma.transaction.count({}));
 
-    return forkJoin({ data$, total$ }).pipe(tap(console.log));
+    return forkJoin({ data$, total$ }).pipe(tap(Logger.debug));
   }
 
   findById(id: string): Observable<TransactionModel> {
-    const trxWhereUniqueInput: Prisma.TransactionWhereUniqueInput = {
-      id: id,
-    };
-
     return from(
       this.prisma.transaction.findUnique({
-        where: trxWhereUniqueInput,
+        where: { id: id },
       }),
-    ).pipe(tap(console.log));
+    ).pipe(tap(Logger.debug));
   }
 
   save(transactionBody: Partial<TransactionBody>) {
-    const { price } = transactionBody;
-
-    return from(
-      this.prisma.transaction.create({
-        data: {
-          price: price,
-          buyerUserEmail: this.req.user.email,
-          user: { connect: { email: this.req.user.email } },
-        } as Prisma.TransactionCreateInput,
-      }),
-    ).pipe(
-      map((trx) =>
-        transactionBody.products.map((products) => ({
-          productId: products.product_id,
-          quantity: products.quantity,
-          transactionId: trx.id,
-        })),
-      ),
-      switchMap((trxsOnProducts) =>
-        this.prisma.transactionsOnProducts.createMany({ data: trxsOnProducts }),
-      ),
-    );
+    // const { price } = transactionBody;
+    throw new NotImplementedException();
+    // return from(
+    //   this.prisma.transaction.create({
+    //     data: {
+    //       price: price,
+    //       buyerUserEmail: this.req.user.email,
+    //       user: { connect: { email: this.req.user.email } },
+    //     } as Prisma.TransactionCreateInput,
+    //   }),
+    // ).pipe(
+    //   map((trx) =>
+    //     transactionBody.products.map((products) => ({
+    //       productId: products.product_id,
+    //       quantity: products.quantity,
+    //       transactionId: trx.id,
+    //     })),
+    //   ),
+    //   switchMap((trxsOnProducts) =>
+    //     this.prisma.transactionsOnProducts.createMany({ data: trxsOnProducts }),
+    //   ),
+    // );
   }
 
   delete(id: string) {

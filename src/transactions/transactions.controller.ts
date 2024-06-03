@@ -1,13 +1,25 @@
-import { Controller, Get, Param, Query, Scope } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Query,
+  Scope,
+  UseGuards,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { TransactionsQueryParams } from './dto/transactions.query-params';
 import { TransactionsService } from './transactions.service';
 import { Transaction as TransactionModel } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
 
 @Controller({ path: 'transactions', scope: Scope.REQUEST })
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Get()
   getTransactions(
     @Query() transactionsQueryParamsDto: TransactionsQueryParams,
@@ -15,6 +27,8 @@ export class TransactionsController {
     return this.transactionsService.findAll(transactionsQueryParamsDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Get(':id')
   getTransaction(@Param('id') id: string): Observable<TransactionModel> {
     return this.transactionsService.findById(id);
