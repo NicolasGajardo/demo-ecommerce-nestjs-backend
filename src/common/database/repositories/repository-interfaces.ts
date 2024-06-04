@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { AssingObjectTypeToProps, XOR } from '../utils/types';
+import { AssingObjectTypeToProps, XOR } from '../../utils/types';
 import { Prisma } from '@prisma/client';
 
 export interface Findable<T extends { id?: string }> {
@@ -15,7 +15,7 @@ export interface Findable<T extends { id?: string }> {
     count: number;
   }>;
 
-  findById?(id: string): Observable<T>;
+  findById(id: string): Observable<T>;
 }
 
 export interface Savable<T extends { id?: string }> {
@@ -29,8 +29,13 @@ export interface Updatable<T extends { id?: string }> {
     id: string,
     payload: Partial<T>,
   ): Observable<T | Pick<T, 'id'> | void>;
+  updateBy(
+    where: Prisma.AtLeast<object, 'id'>,
+    payload: Partial<T>,
+  ): Observable<void>;
 }
 
 export interface Deletable {
   deleteById(id: string): Observable<void>;
+  deleteBy(where: Prisma.AtLeast<object, 'id'>): Observable<void>;
 }

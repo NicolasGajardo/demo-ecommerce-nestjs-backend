@@ -1,20 +1,14 @@
-import {
-  BadRequestException,
-  Injectable,
-  Scope,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { Observable, forkJoin, of, switchMap } from 'rxjs';
-import { ProductsService } from 'src/products/products.service';
-import { TransactionsService } from 'src/transactions/transactions.service';
+import { BadRequestException, Injectable, Scope } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { CheckoutBody } from './dto/checkout.body';
-import { TransactionBody } from 'src/transactions/dto/transaction.body';
+import { ProductsRepository } from 'src/common/database/repositories/products.repository';
+import { TransactionsRepository } from 'src/common/database/repositories/transactions.repository';
 
 @Injectable({ scope: Scope.DEFAULT })
 export class CheckoutService {
   constructor(
-    private readonly transactionService: TransactionsService,
-    private readonly productsService: ProductsService,
+    private readonly transactionsRepository: TransactionsRepository,
+    private readonly productsRepository: ProductsRepository,
   ) {}
 
   checkout(body: CheckoutBody): Observable<any> {
@@ -26,49 +20,54 @@ export class CheckoutService {
       throw new BadRequestException(`Duplicated products`);
     }
 
-    const productsList: Observable<{
-      product_id: string;
-      quantity: number;
-    }>[] = [];
+    return null;
+    // const checkoutProductsEntity = this.productsRepository.obsAdapter.findMany$({
+    //   where: { id: { in: [...uniqueProducts] } },
+    // });
 
-    const trx = new TransactionBody();
-    trx.price = 0;
+    // // const productsList: Observable<{
+    // //   product_id: string;
+    // //   quantity: number;
+    // // }>[] = [];
 
-    for (const checkoutProduct of checkoutProducts) {
-      const obs$ = this.productsService.findById(checkoutProduct.id).pipe(
-        switchMap((product) => {
-          const newStock = product.stock - checkoutProduct.quantity;
+    // const trx = new TransactionBody();
+    // trx.price = 0;
 
-          if (newStock < 0) {
-            throw new UnprocessableEntityException(
-              `The product [${product.id}] is out of stock`,
-            );
-          }
+    // // for (const checkoutProduct of checkoutProducts) {
+    // //   const obs$ = this.productsService.findById(checkoutProduct.id).pipe(
+    // //     switchMap((product) => {
+    // //       const newStock = product.stock - checkoutProduct.quantity;
 
-          return this.productsService
-            .update(product.id, { stock: newStock })
-            .pipe(
-              switchMap(() => {
-                trx.price += checkoutProduct.quantity * product.price;
-                return of({
-                  product_id: product.id,
-                  quantity: checkoutProduct.quantity,
-                });
-              }),
-            );
-        }),
-      );
+    // //       if (newStock < 0) {
+    // //         throw new UnprocessableEntityException(
+    // //           `The product [${product.id}] is out of stock`,
+    // //         );
+    // //       }
 
-      productsList.push(obs$);
-    }
+    // //       return this.productsService
+    // //         .update(product.id, { stock: newStock })
+    // //         .pipe(
+    // //           switchMap(() => {
+    // //             trx.price += checkoutProduct.quantity * product.price;
+    // //             return of({
+    // //               product_id: product.id,
+    // //               quantity: checkoutProduct.quantity,
+    // //             });
+    // //           }),
+    // //         );
+    // //     }),
+    // //   );
 
-    return forkJoin(productsList).pipe(
-      switchMap((products) => {
-        return this.transactionService.save({
-          price: trx.price,
-          products: products,
-        });
-      }),
-    );
+    // //   productsList.push(obs$);
+    // // }
+
+    // // return forkJoin(productsList).pipe(
+    // //   switchMap((products) => {
+    // //     return this.transactionService.save({
+    // //       price: trx.price,
+    // //       products: products,
+    // //     });
+    // //   }),
+    // // );
   }
 }

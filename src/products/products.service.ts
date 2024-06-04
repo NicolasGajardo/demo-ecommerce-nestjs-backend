@@ -5,12 +5,12 @@ import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.i
 import { Product as ProductModel } from '@prisma/client';
 import { ProductsQueryParams } from './dto/products.query-params';
 import { ProductBody } from './dto/product.body';
-import { ProductRepository } from 'src/common/database/repositories/products.repository';
+import { ProductsRepository } from 'src/common/database/repositories/products.repository';
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
-    private readonly productRepository: ProductRepository,
+    private readonly productRepository: ProductsRepository,
   ) {}
 
   findAll(
@@ -52,6 +52,9 @@ export class ProductsService {
   }
 
   delete(id: string): Observable<void> {
-    return this.productRepository.deleteById(id);
+    return this.productRepository.deleteBy({
+      id: id,
+      sellerUserEmail: this.req.user.email,
+    });
   }
 }

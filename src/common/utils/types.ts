@@ -16,3 +16,23 @@ export type XOR<T, U> = T extends object
     ? (Without<T, U> & U) | (Without<U, T> & T)
     : U
   : T;
+
+export type AddPrefix<T, P extends string = '_'> = {
+  [K in keyof T as `${P}${Capitalize<string & K>}`]: () => T[K];
+};
+
+export type AddSufix<T, S extends string = '$'> = {
+  [K in keyof T as `${string & K}${string & S}`]: () => T[K];
+};
+
+export type Filter<T, V> = {
+  [K in keyof T as T[K] extends V ? K : never]: T[K];
+};
+
+export type FilterAndOmit<T, V, O extends keyof T = never> = {
+  [K in keyof T as T[K] extends V
+    ? keyof T[K] extends O
+      ? never
+      : K
+    : never]: T[K];
+};
