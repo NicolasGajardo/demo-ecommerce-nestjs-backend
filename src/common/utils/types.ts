@@ -26,7 +26,7 @@ export type AddSufix<T, S extends string = '$'> = {
 };
 
 export type Filter<T, V> = {
-  [K in keyof T as T[K] extends V ? K : never]: T[K];
+  [K in keyof T as T[K] extends V ? K : never]-?: T[K];
 };
 
 export type FilterAndOmit<T, V, O extends keyof T = never> = {
@@ -34,5 +34,5 @@ export type FilterAndOmit<T, V, O extends keyof T = never> = {
     ? keyof T[K] extends O
       ? never
       : K
-    : never]: T[K];
+    : never]-?: T[K];
 };
