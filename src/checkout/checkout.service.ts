@@ -10,9 +10,7 @@ import { Observable, catchError, forkJoin, map, switchMap } from 'rxjs';
 import { CheckoutBody } from './dto/checkout.body';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { REQUEST } from '@nestjs/core';
-import { TransactionsOnProductsRepository } from 'src/common/database/repositories/transactions-on-products.repository';
-import { ProductsRepository } from 'src/common/database/repositories/products.repository';
-import { TransactionsRepository } from 'src/common/database/repositories/transactions.repository';
+import { PrismaService } from 'src/common/database/prisma.service';
 
 type Checkout = {
   productId: string;
@@ -23,9 +21,7 @@ type Checkout = {
 export class CheckoutService {
   constructor(
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
-    private readonly transactionsRepository: TransactionsRepository,
-    private readonly productsRepository: ProductsRepository,
-    private readonly transactionsOnProductsRepository: TransactionsOnProductsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   checkout(body: CheckoutBody): Observable<
@@ -58,7 +54,7 @@ export class CheckoutService {
 
     for (const checkoutProduct of checkoutProducts) {
       productsToProcess.push(
-        this.productsRepository.obsAdapter
+        this.prisma.productObsAdapter
           .findUniqueOrThrow$({
             where: {
               id: checkoutProduct.id,
@@ -90,7 +86,7 @@ export class CheckoutService {
 
     return forkJoin(productsToProcess).pipe(
       switchMap((products) => {
-        return this.transactionsRepository.obsAdapter
+        return this.prisma.transactionObsAdapter
           .create$({
             data: {
               price: 0,
@@ -99,7 +95,7 @@ export class CheckoutService {
           })
           .pipe(
             switchMap((trx) => {
-              return this.transactionsRepository.obsAdapter.update$({
+              return this.prisma.transactionObsAdapter.update$({
                 data: {
                   price: finalPrice,
                   products: {
