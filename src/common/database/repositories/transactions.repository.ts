@@ -4,19 +4,10 @@ import { Observable, forkJoin } from 'rxjs';
 import { Transaction as TransactionModel, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { AssingTypeToReturnType } from 'src/common/utils/types';
-import { TransactionObservableAdapter } from '../extensions/transaction-observable-adapter';
 
 @Injectable({ scope: Scope.DEFAULT })
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  public get native(): Prisma.TransactionDelegate {
-    return this.prisma.transaction;
-  }
-
-  public get obsAdapter(): TransactionObservableAdapter {
-    return this.prisma.transactionObsAdapter;
-  }
 
   findAndCount$(
     searchColumns: Partial<TransactionModel>,

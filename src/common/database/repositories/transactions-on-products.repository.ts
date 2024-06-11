@@ -5,20 +5,11 @@ import {
   Prisma,
 } from '@prisma/client';
 import { AssingTypeToReturnType } from 'src/common/utils/types';
-import { TransactionsOnProductsObservableAdapter } from '../extensions/transactions-on-products-observable-adapter';
 import { PrismaService } from '../prisma.service';
 
 @Injectable({ scope: Scope.DEFAULT })
 export class TransactionsOnProductsRepository {
   constructor(private prisma: PrismaService) {}
-
-  public get native(): Prisma.TransactionsOnProductsDelegate {
-    return this.prisma.transactionsOnProducts;
-  }
-
-  public get obsAdapter(): TransactionsOnProductsObservableAdapter {
-    return this.prisma.transactionsOnProductsObsAdapter;
-  }
 
   findAndCount$(
     searchColumns: Partial<TransactionsOnProductsModel>,

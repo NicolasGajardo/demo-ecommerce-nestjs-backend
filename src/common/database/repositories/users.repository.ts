@@ -1,33 +1,33 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { Observable, forkJoin } from 'rxjs';
-import { Product as ProductModel, Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { User as UsersModel, Prisma } from '@prisma/client';
 import { AssingTypeToReturnType } from 'src/common/utils/types';
+import { PrismaService } from '../prisma.service';
 
 @Injectable({ scope: Scope.DEFAULT })
-export class ProductsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class UsersRepository {
+  constructor(private prisma: PrismaService) {}
 
   findAndCount$(
-    searchColumns: Partial<ProductModel>,
+    searchColumns: Partial<UsersModel>,
     searchOptions?: {
-      sortBy: AssingTypeToReturnType<Partial<ProductModel>, Prisma.SortOrder>;
+      sortBy: AssingTypeToReturnType<Partial<UsersModel>, Prisma.SortOrder>;
       skip: number;
       take: number;
     },
-  ): Observable<{ data: ProductModel[]; count: number }> {
+  ): Observable<{ data: UsersModel[]; count: number }> {
     const where = searchColumns;
     const { sortBy = { createdAt: 'asc' }, skip = 0, take = 0 } = searchOptions;
 
-    const data$: Observable<ProductModel[]> =
-      this.prisma.productObsAdapter.findMany$({
+    const data$: Observable<UsersModel[]> =
+      this.prisma.userObsAdapter.findMany$({
         skip,
         take,
         where,
         orderBy: sortBy,
       });
 
-    const total$: Observable<number> = this.prisma.productObsAdapter.count$({
+    const total$: Observable<number> = this.prisma.userObsAdapter.count$({
       where,
     });
 

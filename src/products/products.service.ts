@@ -6,11 +6,13 @@ import { Product as ProductModel } from '@prisma/client';
 import { ProductsQueryParams } from './dto/products.query-params';
 import { ProductBody } from './dto/product.body';
 import { ProductsRepository } from 'src/common/database/repositories/products.repository';
+import { PrismaService } from 'src/common/database/prisma.service';
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
     private readonly productRepository: ProductsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   findAll(
@@ -30,7 +32,7 @@ export class ProductsService {
   }
 
   findById(id: string): Observable<ProductModel> {
-    return this.productRepository.obsAdapter.findUnique$({ where: { id: id } });
+    return this.prisma.productObsAdapter.findUnique$({ where: { id: id } });
   }
 
   save(body: ProductBody): Observable<Pick<ProductModel, 'id'>> {
@@ -44,11 +46,11 @@ export class ProductsService {
       sellerUserEmail: this.req.user.email,
     };
 
-    return this.productRepository.obsAdapter.create$({ data: data });
+    return this.prisma.productObsAdapter.create$({ data: data });
   }
 
   update(id: string, body: Partial<ProductBody>): Observable<void> {
-    return this.productRepository.obsAdapter
+    return this.prisma.productObsAdapter
       .update$({
         where: { id: id },
         data: body,
@@ -58,7 +60,7 @@ export class ProductsService {
   }
 
   delete(id: string): Observable<void> {
-    return this.productRepository.obsAdapter
+    return this.prisma.productObsAdapter
       .delete$({
         where: { id: id, sellerUserEmail: this.req.user.email },
         select: null,

@@ -6,12 +6,14 @@ import { TransactionsQueryParams } from './dto/transactions.query-params';
 import { TransactionBody } from './dto/transaction.body';
 import { Transaction as TransactionModel } from '@prisma/client';
 import { TransactionsRepository } from 'src/common/database/repositories/transactions.repository';
+import { PrismaService } from 'src/common/database/prisma.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionsService {
   constructor(
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
     private readonly transactionsRepository: TransactionsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   findAll(
@@ -44,7 +46,7 @@ export class TransactionsService {
       }[];
     }
   > {
-    return this.transactionsRepository.obsAdapter.findUnique$({
+    return this.prisma.transactionObsAdapter.findUnique$({
       where: { id: id },
       include: { products: true },
     });
@@ -53,7 +55,7 @@ export class TransactionsService {
   save(transactionBody: Partial<TransactionBody>): Observable<object> {
     const { price } = transactionBody;
 
-    return this.transactionsRepository.obsAdapter.create$({
+    return this.prisma.transactionObsAdapter.create$({
       data: {
         price: price,
         buyerUserEmail: this.req.user.email,
@@ -62,7 +64,7 @@ export class TransactionsService {
   }
 
   delete(id: string): Observable<object> {
-    return this.transactionsRepository.obsAdapter.delete$({
+    return this.prisma.transactionObsAdapter.delete$({
       where: {
         id: id,
         buyerUserEmail: this.req.user.email,

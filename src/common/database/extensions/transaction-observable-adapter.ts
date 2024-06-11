@@ -35,7 +35,11 @@ export class TransactionObservableAdapter<
       Prisma.TransactionFindUniqueOrThrowArgs<ExtArgs>
     >,
   ): Observable<
-    $Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, 'findFirst'>
+    $Result.GetResult<
+      Prisma.$TransactionPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow'
+    >
   > {
     return from(this.transaction.findUniqueOrThrow(args));
   }

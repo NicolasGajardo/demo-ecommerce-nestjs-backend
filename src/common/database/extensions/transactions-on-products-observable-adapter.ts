@@ -47,7 +47,7 @@ export class TransactionsOnProductsObservableAdapter<
     $Result.GetResult<
       Prisma.$TransactionsOnProductsPayload<ExtArgs>,
       T,
-      'findFirst'
+      'findUniqueOrThrow'
     >
   > {
     return from(this.transactionsOnProducts.findUniqueOrThrow(args));

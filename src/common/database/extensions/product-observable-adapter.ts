@@ -28,7 +28,7 @@ export class ProductObservableAdapter<
   findUniqueOrThrow$<T extends Prisma.ProductFindUniqueOrThrowArgs<ExtArgs>>(
     args?: Prisma.SelectSubset<T, Prisma.ProductFindUniqueOrThrowArgs<ExtArgs>>,
   ): Observable<
-    $Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, 'findFirst'>
+    $Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, 'findUniqueOrThrow'>
   > {
     return from(this.product.findUniqueOrThrow(args));
   }
