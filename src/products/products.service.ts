@@ -1,5 +1,5 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { REQUEST } from '@nestjs/core';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { Product as ProductModel } from '@prisma/client';
@@ -22,7 +22,7 @@ export class ProductsService {
     const orderBy = { createdAt: sortBy };
     const where = { name: category };
 
-    return this.productRepository.findAndCount(where, {
+    return this.productRepository.findAndCount$(where, {
       skip,
       sortBy: orderBy,
       take,
@@ -30,7 +30,7 @@ export class ProductsService {
   }
 
   findById(id: string): Observable<ProductModel> {
-    return this.productRepository.findById(id);
+    return this.productRepository.obsAdapter.findUnique$({ where: { id: id } });
   }
 
   save(body: ProductBody): Observable<Pick<ProductModel, 'id'>> {
@@ -44,17 +44,25 @@ export class ProductsService {
       sellerUserEmail: this.req.user.email,
     };
 
-    return this.productRepository.save(data);
+    return this.productRepository.obsAdapter.create$({ data: data });
   }
 
   update(id: string, body: Partial<ProductBody>): Observable<void> {
-    return this.productRepository.updateById(id, body);
+    return this.productRepository.obsAdapter
+      .update$({
+        where: { id: id },
+        data: body,
+        select: null,
+      })
+      .pipe(map(() => null));
   }
 
   delete(id: string): Observable<void> {
-    return this.productRepository.deleteBy({
-      id: id,
-      sellerUserEmail: this.req.user.email,
-    });
+    return this.productRepository.obsAdapter
+      .delete$({
+        where: { id: id, sellerUserEmail: this.req.user.email },
+        select: null,
+      })
+      .pipe(map(() => null));
   }
 }

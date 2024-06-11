@@ -40,7 +40,9 @@ export class AuthService {
       }),
     ).pipe(
       switchMap((user) =>
-        bcrypt.compareSync(password, user?.password) ? of(user.email) : EMPTY,
+        user && bcrypt.compareSync(password, user.password)
+          ? of(user.email)
+          : EMPTY,
       ),
       throwIfEmpty(
         () => new UnauthorizedException(`email or password is not matched`),
@@ -67,9 +69,9 @@ export class AuthService {
           throw new UnauthorizedException(`email is already in use!`);
         }
 
-        const { password } = body;
+        const { email, password } = body;
         const newUser = {
-          email: persistedUser.email,
+          email: email,
           password: password,
         };
 

@@ -62,14 +62,14 @@ export class ProductsController {
   updateProduct(
     @Param('id') id: string,
     @Body() body: ProductBody,
-  ): Observable<void> {
+  ): Observable<any> {
     return this.productsService.update(id, body);
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  deleteProduct(@Param('id') id: string): Observable<void> {
+  deleteProduct(@Param('id') id: string): Observable<any> {
     return this.productsService.delete(id);
   }
 

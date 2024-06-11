@@ -1,19 +1,12 @@
 import { Module } from '@nestjs/common';
 import { CheckoutController } from './checkout.controller';
 import { CheckoutService } from './checkout.service';
-import { ProductsModule } from 'src/products/products.module';
-import { TransactionsModule } from 'src/transactions/transactions.module';
 import { JwtModule } from '@nestjs/jwt';
-import { TransactionProductModule } from 'src/transaction-product/transaction-product.module';
+import { DatabaseModule } from 'src/common/database/database.module';
 
 @Module({
   controllers: [CheckoutController],
   providers: [CheckoutService],
-  imports: [
-    ProductsModule,
-    TransactionsModule,
-    TransactionProductModule,
-    JwtModule,
-  ],
+  imports: [DatabaseModule, JwtModule],
 })
 export class CheckoutModule {}

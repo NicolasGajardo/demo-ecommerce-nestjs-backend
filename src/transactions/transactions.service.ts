@@ -10,8 +10,8 @@ import { TransactionsRepository } from 'src/common/database/repositories/transac
 @Injectable({ scope: Scope.REQUEST })
 export class TransactionsService {
   constructor(
-    private readonly transactionsRepository: TransactionsRepository,
     @Inject(REQUEST) private readonly req: AuthenticatedRequest,
+    private readonly transactionsRepository: TransactionsRepository,
   ) {}
 
   findAll(
@@ -26,30 +26,47 @@ export class TransactionsService {
       buyerUserEmail: this.req.user.email,
     };
 
-    return this.transactionsRepository.findAndCount(where, {
+    return this.transactionsRepository.findAndCount$(where, {
       skip,
       sortBy: orderBy,
       take,
     });
   }
 
-  findById(id: string): Observable<TransactionModel> {
-    return this.transactionsRepository.findById(id);
-  }
-
-  save(transactionBody: Partial<TransactionBody>) {
-    const { price } = transactionBody;
-
-    return this.transactionsRepository.save({
-      price: price,
-      buyerUserEmail: this.req.user.email,
+  findById(id: string): Observable<
+    TransactionModel & {
+      products: {
+        quantity: number;
+        createdAt: Date;
+        updatedAt: Date;
+        productId: string;
+        transactionId: string;
+      }[];
+    }
+  > {
+    return this.transactionsRepository.obsAdapter.findUnique$({
+      where: { id: id },
+      include: { products: true },
     });
   }
 
-  delete(id: string) {
-    return this.transactionsRepository.deleteBy({
-      id: id,
-      buyerUserEmail: this.req.user.email,
+  save(transactionBody: Partial<TransactionBody>): Observable<object> {
+    const { price } = transactionBody;
+
+    return this.transactionsRepository.obsAdapter.create$({
+      data: {
+        price: price,
+        buyerUserEmail: this.req.user.email,
+      },
+    });
+  }
+
+  delete(id: string): Observable<object> {
+    return this.transactionsRepository.obsAdapter.delete$({
+      where: {
+        id: id,
+        buyerUserEmail: this.req.user.email,
+      },
     });
   }
 }

@@ -30,7 +30,17 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Get(':id')
-  getTransaction(@Param('id') id: string): Observable<TransactionModel> {
+  getTransaction(@Param('id') id: string): Observable<
+    TransactionModel & {
+      products: {
+        quantity: number;
+        createdAt: Date;
+        updatedAt: Date;
+        productId: string;
+        transactionId: string;
+      }[];
+    }
+  > {
     return this.transactionsService.findById(id);
   }
 }

@@ -5,8 +5,8 @@ export type RecursivePartial<T> = {
 export type PartialExcept<T, K extends keyof T> = RecursivePartial<T> &
   Pick<T, K>;
 
-export type AssingObjectTypeToProps<T, O> = {
-  [K in keyof T]?: O;
+export type AssingTypeToReturnType<T, O> = {
+  [K in keyof T]: O;
 };
 
 export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
@@ -22,17 +22,13 @@ export type AddPrefix<T, P extends string = '_'> = {
 };
 
 export type AddSufix<T, S extends string = '$'> = {
-  [K in keyof T as `${string & K}${string & S}`]: () => T[K];
+  [K in keyof T as `${string & K}${S}`]: () => T[K];
 };
 
 export type Filter<T, V> = {
-  [K in keyof T as T[K] extends V ? K : never]-?: T[K];
+  [K in keyof T as T[K] extends V ? K : never]: T[K];
 };
 
-export type FilterAndOmit<T, V, O extends keyof T = never> = {
-  [K in keyof T as T[K] extends V
-    ? keyof T[K] extends O
-      ? never
-      : K
-    : never]-?: T[K];
+export type Omit<T, O extends keyof T> = {
+  [K in keyof T as K extends O ? never : K]: T[K];
 };

@@ -16,7 +16,7 @@ export class CheckoutController {
     return this.checkoutService.checkout(body).pipe(
       map((transaction) => {
         return res
-          .location('/transactions/' + transaction.uuid)
+          .location('/transactions/' + transaction.id)
           .status(HttpStatusCode.Created)
           .send();
       }),
