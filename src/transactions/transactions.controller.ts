@@ -33,7 +33,7 @@ export class TransactionsController {
   getTransaction(@Param('id') id: string): Observable<
     TransactionModel & {
       products: {
-        quantity: number;
+        productQuantity: number;
         createdAt: Date;
         updatedAt: Date;
         productId: string;

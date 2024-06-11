@@ -41,13 +41,18 @@ export class AuthService {
       .pipe(
         switchMap((user) =>
           user && bcrypt.compareSync(password, user.password)
-            ? of(user.email)
+            ? of(user)
             : EMPTY,
         ),
         throwIfEmpty(
           () => new UnauthorizedException(`email or password is not matched`),
         ),
-        map(() => ({ access_token: this.jwtService.sign({ email: email }) })),
+        map((user) => ({
+          access_token: this.jwtService.sign({
+            id: user.id,
+            email: user.email,
+          }),
+        })),
       );
   }
 

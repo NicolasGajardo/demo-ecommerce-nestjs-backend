@@ -43,7 +43,7 @@ export class ProductsService {
       name: name,
       price: price,
       stock: stock,
-      sellerUserEmail: this.req.user.email,
+      sellerUserId: this.req.user.id,
     };
 
     return this.prisma.productObsAdapter.create$({ data: data });
@@ -62,7 +62,7 @@ export class ProductsService {
   delete(id: string): Observable<void> {
     return this.prisma.productObsAdapter
       .delete$({
-        where: { id: id, sellerUserEmail: this.req.user.email },
+        where: { id: id, sellerUserId: this.req.user.id },
         select: null,
       })
       .pipe(map(() => null));

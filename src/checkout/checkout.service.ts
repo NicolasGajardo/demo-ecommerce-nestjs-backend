@@ -11,6 +11,7 @@ import { CheckoutBody } from './dto/checkout.body';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
 import { REQUEST } from '@nestjs/core';
 import { PrismaService } from 'src/common/database/prisma.service';
+import { Transaction as TransactionModel } from '@prisma/client';
 
 type Checkout = {
   productId: string;
@@ -25,20 +26,14 @@ export class CheckoutService {
   ) {}
 
   checkout(body: CheckoutBody): Observable<
-    {
+    TransactionModel & {
       products: {
-        quantity: number;
+        productQuantity: number;
         createdAt: Date;
         updatedAt: Date;
         productId: string;
         transactionId: string;
       }[];
-    } & {
-      id: string;
-      price: number;
-      createdAt: Date;
-      updatedAt: Date;
-      buyerUserEmail: string;
     }
   > {
     const { products: checkoutProducts } = body;
@@ -90,7 +85,7 @@ export class CheckoutService {
           .create$({
             data: {
               price: 0,
-              buyerUserEmail: this.req.user.email,
+              buyerUserId: this.req.user.id,
             },
           })
           .pipe(

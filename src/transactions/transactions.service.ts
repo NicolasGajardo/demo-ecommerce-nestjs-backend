@@ -25,7 +25,7 @@ export class TransactionsService {
     const skip = Number(page) * Number(limit) || 0;
     const orderBy = { createdAt: sortBy };
     const where: Partial<TransactionModel> = {
-      buyerUserEmail: this.req.user.email,
+      buyerUserId: this.req.user.id,
     };
 
     return this.transactionsRepository.findAndCount$(where, {
@@ -38,7 +38,7 @@ export class TransactionsService {
   findById(id: string): Observable<
     TransactionModel & {
       products: {
-        quantity: number;
+        productQuantity: number;
         createdAt: Date;
         updatedAt: Date;
         productId: string;
@@ -58,7 +58,7 @@ export class TransactionsService {
     return this.prisma.transactionObsAdapter.create$({
       data: {
         price: price,
-        buyerUserEmail: this.req.user.email,
+        buyerUserId: this.req.user.id,
       },
     });
   }
@@ -67,7 +67,7 @@ export class TransactionsService {
     return this.prisma.transactionObsAdapter.delete$({
       where: {
         id: id,
-        buyerUserEmail: this.req.user.email,
+        buyerUserId: this.req.user.id,
       },
     });
   }
