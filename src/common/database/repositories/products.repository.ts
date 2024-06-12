@@ -2,16 +2,15 @@ import { Injectable, Scope } from '@nestjs/common';
 import { Observable, forkJoin } from 'rxjs';
 import { Product as ProductModel, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { AssingTypeToReturnType } from 'src/common/utils/types';
 
 @Injectable({ scope: Scope.DEFAULT })
 export class ProductsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findAndCount$(
-    searchColumns: Partial<ProductModel>,
+    searchColumns: Prisma.ProductWhereInput,
     searchOptions?: {
-      sortBy: AssingTypeToReturnType<Partial<ProductModel>, Prisma.SortOrder>;
+      sortBy: Prisma.ProductOrderByWithRelationInput;
       skip: number;
       take: number;
     },

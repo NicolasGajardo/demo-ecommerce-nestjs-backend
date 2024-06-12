@@ -1,7 +1,6 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { Observable, forkJoin } from 'rxjs';
 import { User as UsersModel, Prisma } from '@prisma/client';
-import { AssingTypeToReturnType } from 'src/common/utils/types';
 import { PrismaService } from '../prisma.service';
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -9,9 +8,9 @@ export class UsersRepository {
   constructor(private prisma: PrismaService) {}
 
   findAndCount$(
-    searchColumns: Partial<UsersModel>,
+    searchColumns: Prisma.UserWhereInput,
     searchOptions?: {
-      sortBy: AssingTypeToReturnType<Partial<UsersModel>, Prisma.SortOrder>;
+      sortBy: Prisma.UserOrderByWithRelationInput;
       skip: number;
       take: number;
     },

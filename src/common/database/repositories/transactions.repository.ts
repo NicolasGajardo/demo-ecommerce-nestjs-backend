@@ -3,19 +3,15 @@ import { Observable, forkJoin } from 'rxjs';
 
 import { Transaction as TransactionModel, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { AssingTypeToReturnType } from 'src/common/utils/types';
 
 @Injectable({ scope: Scope.DEFAULT })
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findAndCount$(
-    searchColumns: Partial<TransactionModel>,
+    searchColumns: Prisma.TransactionWhereInput,
     searchOptions?: {
-      sortBy: AssingTypeToReturnType<
-        Partial<TransactionModel>,
-        Prisma.SortOrder
-      >;
+      sortBy: Prisma.TransactionOrderByWithRelationInput;
       skip: number;
       take: number;
     },

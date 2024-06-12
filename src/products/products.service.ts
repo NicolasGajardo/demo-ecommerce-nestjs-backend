@@ -2,11 +2,12 @@ import { Inject, Injectable, Scope } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 import { REQUEST } from '@nestjs/core';
 import { AuthenticatedRequest } from 'src/auth/interface/authenticated-request.interface';
-import { Product as ProductModel } from '@prisma/client';
+import { Product as ProductModel, Prisma } from '@prisma/client';
 import { ProductsQueryParams } from './dto/products.query-params';
 import { ProductBody } from './dto/product.body';
 import { ProductsRepository } from 'src/common/database/repositories/products.repository';
 import { PrismaService } from 'src/common/database/prisma.service';
+
 @Injectable({ scope: Scope.REQUEST })
 export class ProductsService {
   constructor(
@@ -22,7 +23,9 @@ export class ProductsService {
     const take = Number(limit) || 10;
     const skip = Number(page) * Number(limit) || 0;
     const orderBy = { createdAt: sortBy };
-    const where = { name: category };
+    const where: Prisma.ProductWhereInput = {
+      name: { equals: `%${category}%` },
+    };
 
     return this.productRepository.findAndCount$(where, {
       skip,

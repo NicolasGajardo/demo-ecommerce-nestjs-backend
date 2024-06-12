@@ -4,7 +4,6 @@ import {
   TransactionsOnProducts as TransactionsOnProductsModel,
   Prisma,
 } from '@prisma/client';
-import { AssingTypeToReturnType } from 'src/common/utils/types';
 import { PrismaService } from '../prisma.service';
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -12,12 +11,9 @@ export class TransactionsOnProductsRepository {
   constructor(private prisma: PrismaService) {}
 
   findAndCount$(
-    searchColumns: Partial<TransactionsOnProductsModel>,
+    searchColumns: Prisma.TransactionsOnProductsWhereInput,
     searchOptions?: {
-      sortBy: AssingTypeToReturnType<
-        Partial<TransactionsOnProductsModel>,
-        Prisma.SortOrder
-      >;
+      sortBy: Prisma.TransactionsOnProductsOrderByWithRelationInput;
       skip: number;
       take: number;
     },
