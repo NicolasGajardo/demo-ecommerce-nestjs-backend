@@ -8,11 +8,11 @@ This is a NestJS project, a progressive Node.js framework for building efficient
 
 1. **Clone the repository:**
 
-- Clone with HTTPS:
+- HTTPS:
   ```bash
   git clone https://github.com/NicolasGajardo/demo-ecommerce-nestjs-backend.git
   ```
-- Clone with SSH:
+- SSH:
   ```bash
   git clone git@github.com:NicolasGajardo/demo-ecommerce-nestjs-backend.git
   ```
